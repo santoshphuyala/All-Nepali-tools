@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("np-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rupees in Words – Nepali lakh and crore grouping</title>
+<style>
+:root{--bg:#f7f6f2;--fg:#1d1d1b;--card:#fff;--bd:#d9d6cc;--ac:#b3261e;--mut:#6b685f;--wr:#8a6100;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--wr:#e0b84a}}
+:root[data-theme="dark"]{--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--wr:#e0b84a}
+html{scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+a{color:var(--ac)}
+.back{display:inline-block;margin-bottom:6px;font-size:.9rem;text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-size:1.35rem;margin:4px 0 2px}
+h2{font-size:1.05rem;margin:0 0 6px}
+p.sub{margin:0 0 14px;color:var(--mut);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select,button,input[type=text]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+input[type=text]{width:100%;font-size:1.3rem;padding:10px 12px}
+button{cursor:pointer}
+button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.pri{color:#171716}}
+:root[data-theme="dark"] button.pri{color:#171716}
+label.l{font-size:.8rem;color:var(--mut);display:block;margin:6px 0 4px}
+.res{border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin:8px 0;background:var(--bg);font-size:1.05rem;overflow-wrap:anywhere;min-height:3em}
+.ne{font-family:"Noto Sans Devanagari",Mangal,"Nirmala UI",sans-serif;font-size:1.15rem}
+.pf{font-family:Preeti,Kantipur,Himalb,Sagarmatha,Kanchan,"Courier New",monospace;font-size:1.2rem}
+.st{font-size:.85rem;color:var(--mut);margin:6px 0 0;min-height:1.2em}
+.err{color:var(--ac)}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{border-bottom:1px solid var(--bd);padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+th{color:var(--mut);font-weight:500;width:38%}
+.scale li{margin:2px 0}
+details summary{cursor:pointer;font-weight:600}
+footer{text-align:center;color:var(--mut);font-size:.85rem;padding:14px 0 6px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="index.html">← All tools</a>
+<h1>Rupees in Words</h1>
+<p class="sub">The amount line for a cheque, in the lakh and crore grouping Nepal uses. Paisa included.</p>
+
+<div class="card">
+ <label class="l" for="amt">Amount in rupees</label>
+ <input type="text" id="amt" inputmode="decimal" autocomplete="off" value="123456.50" placeholder="e.g. 1,23,456.50">
+ <p class="st" id="msg">Type digits, with or without commas. Two decimal places are read as paisa. Devanagari digits also work.</p>
+ <div class="bar" style="margin-top:6px">
+  <label class="l" style="margin:0">English style
+   <select id="cs"><option value="title">Title Case</option><option value="upper">UPPER CASE</option><option value="sent">Sentence case</option></select>
+  </label>
+  <label class="l" style="margin:0"><input type="checkbox" id="wc" checked> Add "Rupees" and "Only"</label>
+ </div>
+</div>
+
+<div class="card">
+ <h2>English</h2>
+ <div class="res" id="en"></div>
+ <button id="cpen" class="pri">Copy English</button>
+ <h2 style="margin-top:14px">नेपाली</h2>
+ <div class="res ne" id="ne"></div>
+ <button id="cpne" class="pri">नेपाली कपी</button>
+ <h2 style="margin-top:14px">Nepali in Preeti</h2>
+ <div class="res pf" id="pre"></div>
+ <div class="bar"><button id="cppre" class="pri">Copy Preeti</button><label class="l" style="margin:0"><input type="checkbox" id="rich" checked> Copy with Preeti font for Word</label></div>
+ <p class="st">Preeti letters show correctly only if the Preeti font is installed. The same keys work for Kantipur, Fantasy Himali, Sagarmatha and Kanchan: paste, then change the font.</p>
+ <p class="st" id="cpmsg"></p>
+</div>
+
+<div class="card">
+ <table>
+  <tr><th>Nepali grouping</th><td id="g1"></td></tr>
+  <tr><th>Devanagari digits</th><td class="ne" id="g2"></td></tr>
+  <tr><th>International grouping</th><td id="g3"></td></tr>
+  <tr><th>International reading</th><td id="g4"></td></tr>
+ </table>
+</div>
+
+<div class="card">
+ <details>
+  <summary>Nepal counts in twos, not threes</summary>
+  <p>English groups digits in threes: thousand, million, billion. Nepal groups the last three digits, then twos: thousand, lakh, crore, arab. The same figure is written 12,34,567 here and 1,234,567 abroad, and read "twelve lakh thirty four thousand five hundred sixty seven".</p>
+  <ul class="scale">
+   <li><b>1 thousand</b> = 1,000</li>
+   <li><b>1 lakh</b> = 1,00,000 (100 thousand)</li>
+   <li><b>1 crore</b> = 1,00,00,000 (100 lakh)</li>
+   <li><b>1 arab</b> = 1,00,00,00,000 (100 crore)</li>
+   <li><b>1 kharab</b> = 100 arab</li>
+   <li><b>1 shankha</b> = 100 kharab</li>
+  </ul>
+  <p><b>Paisa.</b> Anything after the decimal point is read as paisa and rounded to the nearest one, so 5.999 becomes six rupees. "Only" is added at the end so the amount cannot be extended after it is written.</p>
+  <p><b>Limit.</b> Up to 15 digits before the decimal point (99 shankha 99 kharab and below).</p>
+  <p class="st" style="color:var(--wr)">The Nepali number words (1 to 99 are irregular) are held as a fixed list. Check unusual values, such as 54, 59, 69, 79, 89 and 99, against your bank's own wording before writing a cheque.</p>
+ </details>
+</div>
+
+<footer>Developed by Santosh Phuyal</footer>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ---------- Number words ---------- */
+const NE=['शून्य','एक','दुई','तीन','चार','पाँच','छ','सात','आठ','नौ','दश',
+'एघार','बाह्र','तेह्र','चौध','पन्ध्र','सोह्र','सत्र','अठार','उन्नाइस',
+'बीस','एक्काइस','बाइस','तेइस','चौबीस','पच्चीस','छब्बीस','सत्ताइस','अठ्ठाइस','उनन्तीस',
+'तीस','एकतीस','बत्तीस','तेत्तीस','चौँतीस','पैँतीस','छत्तीस','सैँतीस','अठतीस','उनन्चालीस',
+'चालीस','एकचालीस','बयालीस','त्रिचालीस','चवालीस','पैँतालीस','छयालीस','सतचालीस','अठचालीस','उनन्चास',
+'पचास','एकाउन्न','बाउन्न','त्रिपन्न','चवन्न','पचपन्न','छपन्न','सन्ताउन्न','अन्ठाउन्न','उनान्साठी',
+'साठी','एकसट्ठी','बासट्ठी','त्रिसट्ठी','चौँसट्ठी','पैँसट्ठी','छयसट्ठी','सतसट्ठी','अठसट्ठी','उनान्सत्तरी',
+'सत्तरी','एकहत्तर','बहत्तर','त्रिहत्तर','चौहत्तर','पचहत्तर','छयहत्तर','सतहत्तर','अठहत्तर','उनान्असी',
+'असी','एकासी','बयासी','त्रियासी','चौरासी','पचासी','छयासी','सतासी','अठासी','उनान्नब्बे',
+'नब्बे','एकान्नब्बे','बयान्नब्बे','त्रियान्नब्बे','चौरान्नब्बे','पन्चानब्बे','छयान्नब्बे','सन्तान्नब्बे','अन्ठान्नब्बे','उनान्सय'];
+const NE_SCALE=[null,'हजार','लाख','करोड','अरब','खरब','शंख'];
+
+const EO=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+const ET=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+const EN_SCALE=[null,'Thousand','Lakh','Crore','Arab','Kharab','Shankha'];
+const INT_SCALE=[null,'Thousand','Million','Billion','Trillion'];
+
+function en99(n){return n<20?EO[n]:ET[Math.floor(n/10)]+(n%10?' '+EO[n%10]:'')}
+function en999(n){const h=Math.floor(n/100),r=n%100;return [h?EO[h]+' Hundred':'',r?en99(r):''].filter(Boolean).join(' ')}
+function ne999(n){const h=Math.floor(n/100),r=n%100;return [h?NE[h]+' सय':'',r?NE[r]:''].filter(Boolean).join(' ')}
+
+/* Nepali grouping: last 3 digits, then pairs. Returns array of [value, scaleIndex] high to low. */
+function nepParts(n){ /* n is BigInt */
+ const parts=[];let r=n;
+ parts.push(Number(r%1000n));r/=1000n;
+ while(r>0n){parts.push(Number(r%100n));r/=100n}
+ return parts; /* low to high: [hundreds-group, thousand, lakh, crore, arab, kharab, shankha] */
+}
+function wordsEN(n){
+ if(n===0n)return 'Zero';
+ const p=nepParts(n),out=[];
+ for(let i=p.length-1;i>=0;i--){
+  if(!p[i])continue;
+  out.push(i===0?en999(p[i]):en99(p[i])+' '+EN_SCALE[i]);
+ }
+ return out.join(' ');
+}
+function wordsNE(n){
+ if(n===0n)return NE[0];
+ const p=nepParts(n),out=[];
+ for(let i=p.length-1;i>=0;i--){
+  if(!p[i])continue;
+  out.push(i===0?ne999(p[i]):NE[p[i]]+' '+NE_SCALE[i]);
+ }
+ return out.join(' ');
+}
+function wordsIntl(n){
+ if(n===0n)return 'Zero';
+ const out=[];let r=n;const g=[];
+ while(r>0n){g.push(Number(r%1000n));r/=1000n}
+ for(let k=g.length-1;k>=0;k--){if(g[k])out.push(en999(g[k])+(INT_SCALE[k]?' '+INT_SCALE[k]:''))}
+ return out.join(' ');
+}
+function fmtNep(s){ /* s: digit string without sign */
+ if(s.length<=3)return s;
+ const last=s.slice(-3);let rest=s.slice(0,-3),parts=[];
+ while(rest.length>2){parts.unshift(rest.slice(-2));rest=rest.slice(0,-2)}
+ if(rest)parts.unshift(rest);
+ return parts.join(',')+','+last;
+}
+function fmtIntl(s){return s.replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+const toDev=s=>s.replace(/[0-9]/g,d=>'०१२३४५६७८९'[d]);
+const toLat=s=>s.replace(/[\u0966-\u096f]/g,d=>String(d.charCodeAt(0)-0x0966));
+
+const C='[\u0915-\u0939]',MT='[\u093E-\u094C\u0901-\u0903]';
+/* Unicode -> Preeti */
+const PF={क:'s',ख:'v',ग:'u',घ:'3',ङ:'ª',च:'r',छ:'5',ज:'h',झ:'em',ञ:'`',ट:'6',ठ:'7',ड:'8',ढ:'9',ण:'0f',त:'t',थ:'y',द:'b',ध:'w',न:'g',प:'k',फ:'m',ब:'a',भ:'e',म:'d',य:'o',र:'/',ल:'n',व:'j',श:'z',ष:'if',स:';',ह:'x'};
+const PH={क:'S',ख:'V',ग:'U',घ:'£',च:'R',ज:'H',झ:'‰',ञ:'~',ण:'0',त:'T',थ:'Y',ध:'W',न:'G',प:'K',ब:'A',भ:'E',म:'D',ल:'N',व:'J',श:'Z',ष:'i',स:':',ह:'X'};
+const CJ=[['क्ष','If','I'],['ज्ञ','1',''],['त्र','q',''],['श्र','>',''],['त्त','Q',''],['द्य','B',''],['द्द','2',''],['द्ध','4',''],['द्व','å',''],['ट्ट','§',''],['ठ्ठ','¶','']];
+const IV={अ:'c',आ:'cf',इ:'O',ई:'O{',उ:'p',ऊ:'pm',ऋ:'C',ए:'P',ऐ:'P}',ओ:'cf]',औ:'cf}'};
+const PN={'०':')','१':'!','२':'@','३':'#','४':'$','५':'%','६':'^','७':'&','८':'*','९':'(','।':'.','.':'=','(':'-',')':'_','?':'<',':':'M'};
+const MP={'\u093E':'f','\u0940':'L','\u0941':"'",'\u0942':'"','\u0943':'[','\u0947':']','\u0948':'}','\u094B':'f]','\u094C':'f}','\u0902':'+','\u0901':'F','\u0903':'M'};
+const UR=new RegExp('(र्)?((?:'+C+'\u094D)*'+C+')('+MT+'*)(\u094D)?|([\u0904-\u0914])|([०-९।.()?:])','g');
+function u2p(s){return s.replace(UR,(m,rf,cl,mt,hal,iv,pn)=>{
+ if(iv)return IV[iv]??iv;if(pn)return PN[pn];
+ const parts=[];let i=0;
+ while(i<cl.length){const j=CJ.find(x=>cl.startsWith(x[0],i));
+  if(j){parts.push([j[1],j[2]]);i+=j[0].length}else{const c=cl[i++];parts.push([PF[c]||c,PH[c]||''])}
+  if(cl[i]==='\u094D'){i++;if(cl[i]==='र'){const p=parts[parts.length-1];p[0]+='|';p[1]=p[0]+'\\';i++;if(cl[i]==='\u094D')i++}}}
+ let out='';parts.forEach((p,k)=>{out+=(k===parts.length-1&&!hal)?p[0]:(p[1]||p[0]+'\\')});
+ let pre='',post='';for(const ch of mt){if(ch==='\u093F')pre='l';else post+=MP[ch]||''}
+ if(cl==='र'&&mt==='\u0941'&&!hal)return '?'+(rf?'{':'');if(cl==='र'&&mt==='\u0942'&&!hal)return '¿'+(rf?'{':'');return pre+out+post+(rf?'{':'');});}
+
+/* ---------- Parse amount (string arithmetic, no float errors) ---------- */
+function parseAmount(raw){
+ let s=toLat(raw).replace(/[,\s\u00a0]/g,'').replace(/^(?:rs\.?|npr|nrs\.?|रु\.?)/i,'');
+ if(!s)return{empty:true};
+ if(!/^\d*\.?\d*$/.test(s)||s==='.')return{error:'Use digits only. Commas, spaces and one decimal point are allowed.'};
+ let [ip,fp='']=s.split('.');
+ ip=ip.replace(/^0+(?=\d)/,'')||'0';
+ const p3=(fp+'000').slice(0,3);
+ let paisa=BigInt(p3.slice(0,2));if(+p3[2]>=5)paisa+=1n;
+ let total=BigInt(ip)*100n+paisa;
+ const rupees=total/100n,ps=Number(total%100n);
+ if(rupees.toString().length>15)return{error:'Too large. The limit is 15 digits before the decimal point.'};
+ return{rupees,ps};
+}
+
+/* ---------- Render ---------- */
+function caseEN(s){
+ const m=$('cs').value;
+ if(m==='upper')return s.toUpperCase();
+ if(m==='sent')return s.toLowerCase().replace(/^\w/,c=>c.toUpperCase());
+ return s;
+}
+function render(){
+ const r=parseAmount($('amt').value),msg=$('msg');
+ const set=(a,b,c,d,e,f)=>{$('en').textContent=a;$('ne').textContent=b;$('pre').textContent=b?u2p(b):'';$('g1').textContent=c;$('g2').textContent=d;$('g3').textContent=e;$('g4').textContent=f};
+ if(r.empty){msg.className='st';msg.textContent='Enter an amount.';set('','','','','','');return}
+ if(r.error){msg.className='st err';msg.textContent=r.error;set('','','','','','');return}
+ msg.className='st';msg.textContent='Type digits, with or without commas. Two decimal places are read as paisa. Devanagari digits also work.';
+ const wrap=$('wc').checked,{rupees,ps}=r;
+ let en=[],ne=[];
+ if(rupees>0n||ps===0){en.push((wrap?'Rupees ':'')+wordsEN(rupees));ne.push(wordsNE(rupees)+(wrap?' रुपैयाँ':''))}
+ if(ps>0){
+  if(rupees>0n)en.push('And');
+  en.push(en99(ps)+' Paisa');ne.push(NE[ps]+' पैसा');
+ }
+ if(wrap){en.push('Only');ne.push('मात्र')}
+ const rs=rupees.toString(),nep=fmtNep(rs),intl=fmtIntl(rs);
+ const pz=ps?'.'+String(ps).padStart(2,'0').replace(/0$/,''):'';
+ set(caseEN(en.join(' ')),ne.join(' '),nep+pz,toDev(nep+pz),intl+pz,wordsIntl(rupees));
+}
+['input','change'].forEach(e=>{$('amt').addEventListener(e,render)});
+$('cs').onchange=$('wc').onchange=render;
+
+async function copy(id){
+ const t=$(id).textContent;if(!t)return;
+ try{await navigator.clipboard.writeText(t);$('cpmsg').textContent='Copied.'}
+ catch(e){const r=document.createRange();r.selectNodeContents($(id));const s=getSelection();s.removeAllRanges();s.addRange(r);$('cpmsg').textContent='Select and copy the text manually.'}
+}
+$('cpen').onclick=()=>copy('en');$('cpne').onclick=()=>copy('ne');
+$('cppre').onclick=async()=>{
+ const t=$('pre').textContent;if(!t)return;
+ const esc=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ try{
+  if($('rich').checked&&window.ClipboardItem){
+   await navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([t],{type:'text/plain'}),'text/html':new Blob(['<span style="font-family:Preeti">'+esc+'</span>'],{type:'text/html'})})]);
+  }else await navigator.clipboard.writeText(t);
+  $('cpmsg').textContent='Preeti text copied.';
+ }catch(e){copy('pre')}
+};
+render();
+</script>
+</body>
+</html>

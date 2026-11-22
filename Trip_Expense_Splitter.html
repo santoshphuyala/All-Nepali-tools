@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<script>try{var t=localStorage.getItem("np-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trip Expense Splitter</title>
+<style>
+:root{--bg:#f5f7f8;--card:#fff;--tx:#1b2430;--mu:#667085;--ac:#0f766e;--bd:#e1e5ea;--bad:#b42318;--ok:#067647;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171c;--card:#1d222a;--tx:#e8ebf0;--mu:#9aa4b2;--ac:#2dd4bf;--bd:#323946;--bad:#f97066;--ok:#47cd89}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171c;--card:#1d222a;--tx:#e8ebf0;--mu:#9aa4b2;--ac:#2dd4bf;--bd:#323946;--bad:#f97066;--ok:#47cd89}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:12px}
+h1{font-size:20px;margin:4px 0 10px}h3{margin:0 0 8px;font-size:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row h3{margin:0;flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mu);gap:3px}
+input,select,button{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);min-width:0}
+button{background:var(--ac);color:#fff;border-color:var(--ac);cursor:pointer;font-weight:600}
+button.g{background:transparent;color:var(--tx);border-color:var(--bd)}button.s{padding:3px 8px;font-size:12px}button.d{background:transparent;color:var(--bad);border-color:var(--bad)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}.tab{background:var(--card);color:var(--tx);border-color:var(--bd);white-space:nowrap}.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600;white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap}.nw{white-space:nowrap}.mu{color:var(--mu)}small{font-size:11px}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.split{margin:10px 0;display:flex;flex-direction:column;gap:6px}.mrow{display:flex;gap:8px;align-items:center}.mrow label{flex-direction:row;align-items:center;color:var(--tx);font-size:14px;min-width:130px}.mrow input[type=number]{width:110px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.stat{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}.stat b{display:block;font-size:20px}
+.pd{background:rgba(250,204,21,.25)}.pdl{display:block;color:var(--ok);font-size:10px;font-weight:600}.chk{flex-direction:row;align-items:center;color:var(--tx);font-size:13px;gap:6px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chips button{padding:4px 10px;font-size:12px}dialog p{white-space:pre-wrap}#toast button{margin-left:10px;padding:2px 10px}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;padding:9px 14px;border-radius:10px;display:none;z-index:9;max-width:90%}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);max-width:380px;width:90%}dialog input{width:100%;margin-bottom:10px}
+
+.wrap{max-width:1100px}.filt>select,.filt>input{flex:1 1 130px}.tw{-webkit-overflow-scrolling:touch}
+dialog{max-height:85vh;overflow:auto}dialog::backdrop{background:rgba(0,0,0,.45)}
+button:disabled,input:disabled{opacity:.6}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+@media(min-width:900px){.grid{grid-template-columns:repeat(4,1fr)}#toast{max-width:480px}}
+@media(max-width:640px){
+ .wrap{padding:8px}.card{padding:12px}h1{font-size:18px}
+ input,select{font-size:16px}button{min-height:40px}button.s{min-height:34px;padding:6px 10px;font-size:13px}
+ .grid{grid-template-columns:1fr 1fr}.grid>label:nth-child(-n+2){grid-column:1/-1}
+ .mrow label{min-width:0;flex:1}.mrow input[type=number]{width:100px}
+ .stats{grid-template-columns:1fr 1fr}.stat b{font-size:17px}
+ #list table,#list tbody,#list tr,#list td{display:block;width:100%}
+ #list tr{border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;padding:6px 10px}
+ #list tr.hd{display:none}
+ #list td{border:0;padding:3px 0;display:flex;justify-content:space-between;gap:12px;text-align:right;white-space:normal}
+ #list td::before{content:attr(data-l);color:var(--mu);font-size:12px;text-align:left;flex:none}
+ #list td.act{justify-content:flex-end;gap:6px;padding-top:6px}#list td.act::before{content:none}
+ #list tr.tt{display:flex;justify-content:space-between;background:var(--bg)}#list tr.tt th{border:0;padding:2px 0}#list tr.tt th:empty{display:none}
+}
+.bk{display:inline-block;margin:2px 0 4px;font-size:13px;color:var(--ac);text-decoration:none}.bk:hover{text-decoration:underline}
+</style></head><body><div class="wrap">
+<a class="bk" href="index.html">← All tools</a>
+<h1>🧳 Trip Expense Splitter</h1>
+<div class="card row">
+ <select id="evsel" style="flex:1;min-width:140px"></select>
+ <button class="g s" id="evnew">+ New event</button><button class="g s" id="evren">Rename</button><button class="d s" id="evdel">Delete</button>
+</div>
+<div class="tabs">
+ <button class="tab" data-t="exp">Expenses</button><button class="tab" data-t="fr">Friends</button><button class="tab" data-t="sum">Summary</button><button class="tab" data-t="cur">Currencies</button><button class="tab" data-t="bk">Backup &amp; PDF</button>
+</div>
+<div id="main"></div></div>
+<div id="toast"></div><dialog id="dlg"></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),K='tripSplitterV1',BASE='NPR';
+const CATS=['Lodging','Food','Transport','Entry fee','Shopping','Activities','Personal','Other'];
+const TYPES={all:'Common – equal to all',some:'Specific friends – equal',personal:'Personal – one person only',ratio:'Custom ratio',amount:'Custom amounts'};
+const uid=()=>'i'+Math.random().toString(36).slice(2,8);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fm=n=>(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+let S=(()=>{try{const j=JSON.parse(localStorage.getItem(K));if(j&&Array.isArray(j.events)&&j.events.length)return j}catch(e){}
+ const id=uid();return{cur:{NPR:1,INR:1.6,USD:135},events:[{id,name:'My Trip',friends:[],expenses:[]}],sel:id,tab:'exp',disp:BASE}})();
+let editId=null;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const E=()=>S.events.find(e=>e.id===S.sel)||S.events[0];
+const nm=(e,id)=>(e.friends.find(f=>f.id===id)||{}).name||'?';
+const norm=x=>{if(!x.payers||typeof x.payers!=='object'||Array.isArray(x.payers))x.payers={};if(!Object.keys(x.payers).length&&x.payer)x.payers={[x.payer]:x.amount||0};const p=Object.create(null);for(const k in x.payers){const key=String(k);if(key!=='')p[key]=Math.max(0,+x.payers[k]||0)}if(!Object.keys(p).length&&x.payer!=null&&x.payer!=='')p[String(x.payer)]=Math.max(0,+x.amount||0);x.payers=p;x.payer=Object.keys(p)[0];x.members=(Array.isArray(x.members)?x.members:[]).filter(i=>i!=null&&i!=='').map(String);const v=Object.create(null);if(x.vals&&typeof x.vals==='object'&&!Array.isArray(x.vals))for(const k in x.vals){const key=String(k);if(key!=='')v[key]=Math.max(0,+x.vals[k]||0)}x.vals=v;x.id=x.id==null||x.id===''?uid():String(x.id);x.date=x.date||today();x.desc=String(x.desc??'');x.cat=CATS.includes(x.cat)?x.cat:'Other';x.cur=String(x.cur||BASE).trim().toUpperCase()||BASE;x.amount=Math.max(0,+x.amount||0);x.rate=+x.rate||0;if(x.cur===BASE)x.rate=1;if(!TYPES[x.type])x.type='all';return x};
+const clean=j=>{if(!j.last||typeof j.last!=='object'||Array.isArray(j.last))j.last={};const c=Object.create(null);if(j.cur&&typeof j.cur==='object'&&!Array.isArray(j.cur))for(const k in j.cur){const r=+j.cur[k],code=String(k).trim().toUpperCase();if(code&&r>0)c[code]=r}if(!Object.keys(c).length){c.NPR=1;c.INR=1.6;c.USD=135}c.NPR=1;j.cur=c;if(!Array.isArray(j.last.members))j.last.members=[];else j.last.members=j.last.members.filter(i=>i!=null&&i!=='').map(String);if(!TYPES[j.last.type])j.last.type='all';if(!CATS.includes(j.last.cat))j.last.cat=CATS[0];
+ j.events=(Array.isArray(j.events)?j.events:[]).filter(e=>e&&typeof e==='object').map(e=>({id:e.id==null||e.id===''?uid():String(e.id),name:String(e.name??'Untitled'),friends:(Array.isArray(e.friends)?e.friends:[]).filter(f=>f&&f.id!=null&&f.id!=='').map(f=>({id:String(f.id),name:String(f.name??'')})),expenses:(Array.isArray(e.expenses)?e.expenses:[]).filter(x=>x&&typeof x==='object')}));
+ j.events.forEach(e=>e.expenses.forEach(norm));if(!j.events.length){const id=uid();j.events.push({id,name:'My Trip',friends:[],expenses:[]});j.sel=id}
+ const se=new Set();j.events.forEach(e=>{if(se.has(e.id))e.id=uid();se.add(e.id);const sf=new Set(),sx=new Set();e.friends.forEach(f=>{if(sf.has(f.id))f.id=uid();sf.add(f.id)});e.expenses.forEach(x=>{if(sx.has(x.id))x.id=uid();sx.add(x.id);if(x.cur===BASE)x.rate=1;else{if(!j.cur[x.cur])j.cur[x.cur]=x.rate>0?x.rate:1;if(!(x.rate>0))x.rate=j.cur[x.cur]||1}})});const lc=String(j.last.cur||'').trim().toUpperCase();j.last.cur=j.cur[lc]?lc:BASE;
+ const dc=String(j.disp||'').trim().toUpperCase();j.disp=j.cur[dc]?dc:BASE;if(j.sel!=null)j.sel=String(j.sel);if(!['exp','fr','sum','cur','bk'].includes(j.tab))j.tab='exp';return j};S=clean(S);
+const payLbl=(x,e)=>{const k=Object.keys(x.payers);return k.map(i=>nm(e,i)+(k.length>1?' '+fm(x.payers[i]):'')).join(', ')};
+function toast(m,act){const t=$('#toast');t.textContent=m;if(act){const b=document.createElement('button');b.textContent=act[0];b.onclick=()=>{t.style.display='none';act[1]()};t.appendChild(b)}t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',act?6000:3200)}
+function modal(msg,inp){return new Promise(r=>{const d=$('#dlg');d.returnValue='';d.innerHTML=`<form method="dialog"><p>${esc(msg)}</p>${inp!==undefined?`<input id="di" value="${esc(inp)}" autofocus>`:''}<div class="row" style="justify-content:flex-end"><button value="n" class="g">Cancel</button><button value="y">OK</button></div></form>`;const di=$('#di');if(di)di.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();d.querySelector('button[value="y"]').click()}};d.onclose=()=>r(d.returnValue==='y'?(inp!==undefined?$('#di').value.trim():true):null);d.showModal()})}
+/* ---------- calculation ---------- */
+function shares(x,e){const n=x.amount*(x.rate||1),o=Object.create(null),v=x.vals||{},ids=x.type==='all'?e.friends.map(f=>f.id):x.members;
+ if(x.type==='ratio'){const t=ids.reduce((a,i)=>a+(+v[i]||0),0)||1;ids.forEach(i=>o[i]=n*(+v[i]||0)/t)}
+ else if(x.type==='amount')ids.forEach(i=>o[i]=(+v[i]||0)*(x.rate||1));
+ else ids.forEach(i=>o[i]=n/(ids.length||1));return o}
+function calc(e){const f=Object.create(null);e.friends.forEach(x=>f[x.id]={paid:0,share:0});
+ const rows=e.expenses.map(x=>{const rt=x.rate||1,n=x.amount*rt,sh=shares(x,e),pay=Object.create(null);for(const k in x.payers){pay[k]=x.payers[k]*rt;if(f[k])f[k].paid+=pay[k]}for(const k in sh)if(f[k])f[k].share+=sh[k];return{x,n,sh,pay}});
+ return{f,rows,total:rows.reduce((a,r)=>a+r.n,0)}}
+function settle(e,c){const d=e.friends.map(f=>({id:f.id,n:f.name,b:c.f[f.id].paid-c.f[f.id].share}));
+ const cr=d.filter(x=>x.b>.005).sort((a,b)=>b.b-a.b),db=d.filter(x=>x.b<-.005).map(x=>({id:x.id,n:x.n,b:-x.b})).sort((a,b)=>b.b-a.b),out=[];let i=0,j=0;
+ while(i<db.length&&j<cr.length){const a=Math.min(db[i].b,cr[j].b);out.push({from:db[i].n,to:cr[j].n,fromId:db[i].id,toId:cr[j].id,amt:a});db[i].b-=a;cr[j].b-=a;if(db[i].b<.005)i++;if(cr[j].b<.005)j++}return out}
+const splitLbl=(x,e)=>{const n=x.members.map(i=>nm(e,i));return({all:'Equal – all',some:'Equal – '+n.join(', '),personal:'Personal – '+n[0],ratio:'Ratio '+n.map((a,k)=>a+' '+(x.vals[x.members[k]]??0)).join(' : '),amount:'Custom – '+n.map((a,k)=>a+' '+fm(x.vals[x.members[k]])).join(', ')})[x.type]||''};
+/* ---------- render ---------- */
+function render(){const e=E();S.sel=e.id;
+ $('#evsel').innerHTML=S.events.map(x=>`<option value="${esc(x.id)}" ${x.id===e.id?'selected':''}>${esc(x.name)}</option>`).join('');
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+ ({exp:rExp,fr:rFr,sum:rSum,cur:rCur,bk:rBk})[S.tab](e);save()}
+function renderSplit(t,mem=[],vals={}){const e=E();$('#fsplit').innerHTML=t==='all'?`<span class="mu">Divided equally among all ${e.friends.length} friends.</span>`:
+ e.friends.map(f=>`<div class="mrow"><label><input type="${t==='personal'?'radio':'checkbox'}" name="m" data-m="${esc(f.id)}" ${mem.includes(f.id)?'checked':''}> ${esc(f.name)}</label>${t==='ratio'||t==='amount'?`<input type="number" step="any" min="0" data-v="${esc(f.id)}" value="${vals[f.id]??(t==='ratio'?1:'')}" placeholder="${t==='ratio'?'share':'amount'}">`:''}</div>`).join('')+
+ (t==='ratio'?'<small class="mu">Ratio: tick friends and enter shares, e.g. 2 : 1.</small>':t==='amount'?'<small class="mu">Amounts are in the expense currency and must add up to the total.</small>':'')}
+function rExp(e){const cs=Object.keys(S.cur);
+ $('#main').innerHTML=`<div class="card"><h3 id="ftitle">Add expense</h3>${e.friends.length?'':'<p class="neg">Add friends first (Friends tab).</p>'}<div class="grid">
+ <label>Date<span class="row" style="flex-wrap:nowrap"><input type="date" id="fd" style="flex:1"><button type="button" class="s g" data-dt="0">Today</button><button type="button" class="s g" data-dt="-1">Yest.</button></span></label><label>Description<input id="fn" placeholder="e.g. Hotel room" list="dl" autocomplete="off"><datalist id="dl">${[...new Set(S.events.flatMap(z=>z.expenses.map(x=>x.desc)))].map(d=>`<option value="${esc(d)}">`).join('')}</datalist></label>
+ <label>Category<select id="fc">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+ <label>Paid by<select id="fp">${e.friends.map(f=>`<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('')}</select></label>
+ <label class="chk" style="align-self:end"><input type="checkbox" id="fmulti"> Multiple payers</label><label>Amount<input type="number" step="any" min="0" id="fa"></label>
+ <label>Currency<select id="fcur">${cs.map(c=>`<option>${esc(c)}</option>`).join('')}</select></label>
+ <label>Rate (1 unit = ? NPR)<input type="number" step="any" id="fr"></label>
+ <label>Split type<select id="ft">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label></div>
+ <div class="chips">${CATS.map(c=>`<button type="button" class="g" data-cat="${c}">${c}</button>`).join('')}</div><div id="fpay" class="split" style="display:none"></div><div id="fsplit" class="split"></div><div class="row"><button id="fsave">Save expense</button><button class="g" id="fclr">Clear</button></div></div>
+ <div class="card"><div class="row filt"><h3>Expenses</h3><select id="qc"><option value="">All categories</option>${CATS.map(c=>`<option>${c}</option>`).join('')}</select><select id="qf"><option value="">All friends</option>${e.friends.map(f=>`<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('')}</select><input id="q" placeholder="Search…"></div><div id="list" class="tw"></div></div>`;
+ fillForm(e.expenses.find(x=>x.id===editId));
+ $('#fcur').onchange=()=>{$('#fr').value=S.cur[$('#fcur').value];$('#fr').disabled=$('#fcur').value===BASE};
+ $('#ft').onchange=()=>renderSplit($('#ft').value,[],{});
+ $('#q').oninput=rList;$('#qc').onchange=rList;$('#qf').onchange=rList;$('#fsave').onclick=saveExp;$('#fclr').onclick=()=>{editId=null;fillForm()};
+ $('#fmulti').onchange=()=>payUI();$('#fn').onchange=autofill;['fn','fa'].forEach(i=>$('#'+i).onkeydown=k=>{if(k.key==='Enter')saveExp()});rList()}
+function fillForm(x,asNew){const e=E(),L=S.last||{},ids=x?Object.keys(x.payers):[];editId=x&&!asNew?x.id:null;$('#ftitle').textContent=x?(asNew?'New expense (copy)':'Edit expense'):'Add expense';
+ $('#fd').value=x&&!asNew?x.date:today();$('#fn').value=x?x.desc:'';$('#fc').value=x?x.cat:(L.cat||CATS[0]);
+ const pid=ids[0]&&e.friends.some(f=>f.id===ids[0])?ids[0]:(e.friends.some(f=>f.id===L.payer)?L.payer:'');if(pid)$('#fp').value=pid;$('#fmulti').checked=ids.length>1;
+ $('#fa').value=x?x.amount:'';$('#fcur').value=x?x.cur:(L.cur&&S.cur[L.cur]?L.cur:BASE);$('#fr').value=x?x.rate:S.cur[$('#fcur').value];$('#ft').value=x?x.type:(L.type||'all');
+ $('#fr').disabled=$('#fcur').value===BASE;renderSplit($('#ft').value,x?x.members:(L.members||[]),x?x.vals:{});payUI(x?x.payers:undefined)}
+function readPay(){const on=new Set([...document.querySelectorAll('[data-pc]:checked')].map(i=>i.dataset.pc)),o=Object.create(null);document.querySelectorAll('[data-p]').forEach(i=>{if(!on.has(i.dataset.p))return;const v=parseFloat(i.value);if(v>0)o[i.dataset.p]=v});return o}
+function payUI(pay){const e=E(),m=$('#fmulti').checked,d=$('#fpay');$('#fp').parentElement.style.display=m?'none':'';d.style.display=m?'':'none';if(!m)return;
+ pay=pay||Object.assign(Object.create(null),{[$('#fp').value]:parseFloat($('#fa').value)||0});
+ d.innerHTML=e.friends.map(f=>`<div class="mrow"><label><input type="checkbox" data-pc="${esc(f.id)}" ${pay[f.id]?'checked':''}> ${esc(f.name)}</label><input type="number" step="any" min="0" data-p="${esc(f.id)}" value="${pay[f.id]||''}" placeholder="paid"></div>`).join('')+'<div class="row"><button type="button" class="s g" id="peq">Split paid amount equally among ticked</button><small class="mu">Paid amounts must add up to the total.</small></div>';
+ $('#peq').onclick=()=>{const a=parseFloat($('#fa').value)||0,ids=[...d.querySelectorAll('[data-pc]:checked')].map(i=>i.dataset.pc);if(!ids.length)return toast('Tick who paid');const each=a/ids.length,inputs={};d.querySelectorAll('[data-p]').forEach(i=>inputs[i.dataset.p]=i);let s=0;ids.forEach((id,k)=>{const v=k===ids.length-1?+(a-s).toFixed(2):+each.toFixed(2);s+=v;if(inputs[id])inputs[id].value=v.toFixed(2)})}}
+function autofill(){if(editId)return;const e=E(),v=$('#fn').value.trim().toLowerCase(),p=[...e.expenses].reverse().find(x=>x.desc.toLowerCase()===v);if(!p)return;
+ const ids=Object.keys(p.payers);$('#fc').value=p.cat;if(S.cur[p.cur]){$('#fcur').value=p.cur;$('#fr').value=p.rate;$('#fr').disabled=p.cur===BASE}$('#ft').value=p.type;renderSplit(p.type,p.members,p.vals);$('#fmulti').checked=ids.length>1;if(ids[0]&&e.friends.some(f=>f.id===ids[0]))$('#fp').value=ids[0];payUI(ids.length>1?p.payers:undefined);toast('Filled from your last “'+p.desc+'” — adjust if needed')}
+function saveExp(){const e=E(),amt=parseFloat($('#fa').value),t=$('#ft').value,mem=[...document.querySelectorAll('[data-m]:checked')].map(i=>i.dataset.m),vals=Object.create(null);
+ document.querySelectorAll('[data-v]').forEach(i=>vals[i.dataset.v]=Math.max(0,parseFloat(i.value)||0));
+ if(!$('#fn').value.trim())return toast('Enter a description');if(!(amt>0))return toast('Enter a valid amount');
+ let payers=Object.create(null);if($('#fmulti').checked){payers=readPay();const s=Object.values(payers).reduce((a,b)=>a+b,0);if(!s)return toast('Enter who paid how much');if(Math.abs(s-amt)>.01)return toast(`Payers total ${fm(s)} but expense is ${fm(amt)}`)}else{if(!$('#fp').value)return toast('Add friends and choose who paid');payers=Object.create(null);payers[$('#fp').value]=amt}const cur=$('#fcur').value,rate=cur===BASE?1:parseFloat($('#fr').value);if(cur!==BASE&&!(rate>0))return toast('Enter a valid rate');
+ if(t!=='all'&&!mem.length)return toast('Select the friend(s) for this split');
+ if(t==='ratio'&&!mem.some(i=>vals[i]>0))return toast('Enter ratio shares');
+ if(t==='amount'){const s=mem.reduce((a,i)=>a+vals[i],0);if(Math.abs(s-amt)>.01)return toast(`Custom amounts total ${fm(s)} but expense is ${fm(amt)}`)}
+ const o={id:editId||uid(),date:$('#fd').value||today(),desc:$('#fn').value.trim(),cat:$('#fc').value,payers,payer:Object.keys(payers)[0],amount:amt,cur,rate,type:t,members:t==='all'?[]:mem,vals:t==='ratio'||t==='amount'?vals:{}};
+ const i=e.expenses.findIndex(x=>x.id===o.id);i>=0?e.expenses[i]=o:e.expenses.push(o);e.expenses.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+ S.last={cat:o.cat,payer:o.payer,cur:o.cur,type:o.type,members:o.members};const was=!!editId;editId=null;toast(was?'Expense updated':'Saved — ready for the next one');render();setTimeout(()=>{const n=$('#fn');n&&n.focus()},50)}
+function rList(){const e=E(),q=($('#q').value||'').toLowerCase(),c=calc(e),qc=$('#qc').value,qf=$('#qf').value,rows=c.rows.filter(r=>(r.x.desc+r.x.cat+payLbl(r.x,e)).toLowerCase().includes(q)&&(!qc||r.x.cat===qc)&&(!qf||r.pay[qf]||r.sh[qf]));
+ $('#list').innerHTML=rows.length?`<table><tr class="hd"><th>Date<th>Description<th>Paid by<th class="n">Amount<th>Split<th class="n">In NPR<th></tr>`+rows.map(r=>`<tr><td class="nw" data-l="Date">${esc(r.x.date)}<td data-l="Item"><span>${esc(r.x.desc)}<br><small class="mu">${esc(r.x.cat)}</small></span><td data-l="Paid by">${esc(payLbl(r.x,e))}<td class="n" data-l="Amount">${fm(r.x.amount)} ${esc(r.x.cur)}<td data-l="Split">${esc(splitLbl(r.x,e))}<td class="n" data-l="In NPR">${fm(r.n)}<td class="nw act"><button class="s g" data-ed="${esc(r.x.id)}">Edit</button> <button class="s g" data-dup="${esc(r.x.id)}">Copy</button> <button class="s d" data-del="${esc(r.x.id)}">✕</button>`).join('')+`<tr class="tt"><th colspan="5">Total<th class="n">${fm(rows.reduce((a,r)=>a+r.n,0))}<th></tr></table>`:'<p class="mu">No expenses yet.</p>'}
+function rFr(e){$('#main').innerHTML=`<div class="card"><h3>Friends in “${esc(e.name)}”</h3><div class="row"><input id="fnm" placeholder="Friend name" style="flex:1"><button id="fadd">Add friend</button></div></div>
+ <div class="card"><table>${e.friends.map(f=>`<tr><td>${esc(f.name)}<td class="nw" style="text-align:right"><button class="s g" data-fren="${esc(f.id)}">Rename</button> <button class="s d" data-fdel="${esc(f.id)}">Remove</button>`).join('')||'<tr><td class="mu">No friends yet.'}</table></div>`;
+ const add=()=>{const v=$('#fnm').value.trim();if(!v)return;if(e.friends.some(f=>f.name.toLowerCase()===v.toLowerCase()))return toast('Name already exists');e.friends.push({id:uid(),name:v});render();$('#fnm').focus()};
+ $('#fadd').onclick=add;$('#fnm').onkeydown=k=>{if(k.key==='Enter')add()}}
+function rSum(e){const c=calc(e),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),st=settle(e,c),cat={};c.rows.forEach(r=>cat[r.x.cat]=(cat[r.x.cat]||0)+r.n);
+ const n=e.friends.length||1;
+ $('#main').innerHTML=`<div class="card row"><h3>Summary – ${esc(e.name)}</h3><button class="g s" id="cpy">Copy as text</button><label>Show in<select id="disp">${Object.keys(S.cur).map(k=>`<option ${k===D?'selected':''}>${esc(k)}</option>`).join('')}</select></label></div>
+ <div class="stats"><div class="stat"><small class="mu">Total expense</small><b>${esc(D)} ${f(c.total)}</b></div><div class="stat"><small class="mu">Per person (avg)</small><b>${esc(D)} ${f(c.total/n)}</b></div><div class="stat"><small class="mu">Expenses</small><b>${e.expenses.length}</b></div></div>
+ <div class="card"><h3>Who pays whom (settlement)</h3>${st.length?st.map(s=>`<p style="margin:4px 0"><b>${esc(s.from)}</b> pays <b>${esc(s.to)}</b> → <span class="pos">${esc(D)} ${f(s.amt)}</span></p>`).join(''):'<p class="mu">All settled — nothing to pay.</p>'}</div>
+ <div class="card tw"><h3>Balances</h3><table><tr><th>Friend<th class="n">Paid<th class="n">Own share<th class="n">Net<th></tr>${e.friends.map(x=>{const b=c.f[x.id].paid-c.f[x.id].share;return`<tr><td>${esc(x.name)}<td class="n">${f(c.f[x.id].paid)}<td class="n">${f(c.f[x.id].share)}<td class="n ${b>=0?'pos':'neg'}">${f(Math.abs(b))}<td>${Math.abs(b)<.005?'Settled':b>0?'Gets back':'Owes'}`}).join('')}</table></div>
+ <div class="card tw"><h3>Expense-wise share per friend</h3><p class="mu" style="margin:0 0 8px"><span class="pd" style="padding:1px 6px;border-radius:4px">Highlighted</span> = friend who paid that expense (amount shown below the share)</p><table><tr><th>Expense<th class="n">Total${e.friends.map(x=>`<th class="n">${esc(x.name)}`).join('')}</tr>${c.rows.map(r=>`<tr><td>${esc(r.x.desc)}<br><small class="mu">paid by ${esc(payLbl(r.x,e))}</small><td class="n">${f(r.n)}${e.friends.map(x=>`<td class="n ${r.pay[x.id]?'pd':''}">${r.sh[x.id]?f(r.sh[x.id]):'–'}${r.pay[x.id]?`<small class="pdl">paid ${f(r.pay[x.id])}</small>`:''}`).join('')}`).join('')}<tr><th>Total<th class="n">${f(c.total)}${e.friends.map(x=>`<th class="n">${f(c.f[x.id].share)}`).join('')}</tr></table></div>
+ <div class="card tw"><h3>By category</h3><table>${Object.entries(cat).map(([k,v])=>`<tr><td>${esc(k)}<td class="n">${esc(D)} ${f(v)}`).join('')||'<tr><td class="mu">No data'}</table></div>`;
+ $('#disp').onchange=()=>{S.disp=$('#disp').value;render()};
+ $('#cpy').onclick=async()=>{const t=`${e.name}\nTotal: ${D} ${f(c.total)}\n\nSettlement:\n`+(st.length?st.map(s=>`${s.from} pays ${s.to}: ${D} ${f(s.amt)}`).join('\n'):'All settled')+'\n\nBalances:\n'+e.friends.map(x=>{const b=c.f[x.id].paid-c.f[x.id].share;return`${x.name}: paid ${f(c.f[x.id].paid)}, share ${f(c.f[x.id].share)}, ${b>=0?'gets back':'owes'} ${f(Math.abs(b))}`}).join('\n');try{await navigator.clipboard.writeText(t);toast('Copied to clipboard')}catch(er){modal(t)}}}
+function rCur(e){$('#main').innerHTML=`<div class="card"><h3>Currencies &amp; exchange rates</h3><p class="mu">Rate = how many NPR equal 1 unit of the currency. Each expense stores the rate used when it was entered, so changing a rate here affects only new expenses unless you re-apply it.</p><div class="row" style="margin-bottom:8px"><button class="g" data-capply="*">Re-apply all current rates to every existing expense</button></div>
+ <table><tr><th>Code<th>NPR per 1 unit<th></tr>${Object.entries(S.cur).map(([k,v])=>`<tr><td>${esc(k)}<td>${k===BASE?'1 (default)':`<input type="number" step="any" value="${esc(v)}" data-rate="${esc(k)}" style="width:120px">`}<td class="nw">${k===BASE?'':`<button class="s g" data-capply="${esc(k)}">Re-apply to existing</button> <button class="s d" data-cdel="${esc(k)}">Remove</button>`}`).join('')}</table></div>
+ <div class="card"><h3>Add currency</h3><div class="row"><input id="cc" placeholder="Code e.g. EUR" maxlength="6" style="width:130px"><input id="cr" type="number" step="any" placeholder="NPR per 1 unit" style="width:150px"><button id="cadd">Add</button></div></div>`;
+ $('#cadd').onclick=()=>{const c=$('#cc').value.trim().toUpperCase(),r=parseFloat($('#cr').value);if(!/^[A-Z]{2,6}$/.test(c))return toast('Enter a valid code (letters only)');if(S.cur[c])return toast('Currency already exists');if(!(r>0))return toast('Enter a valid rate');S.cur[c]=r;render()}}
+function rBk(e){$('#main').innerHTML=`<div class="card"><h3>PDF summary</h3><p class="mu">Tables of every expense with each friend's share, balances and settlement. Uses the “Show in” currency from the Summary tab (${esc(S.disp)}).</p><div class="row"><button id="pdf1">PDF – this event</button><button class="g" id="pdfA">PDF – all events</button></div><div class="row" style="margin-top:10px"><select id="pf">${e.friends.map(f=>`<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('')}</select><button class="g" id="pdfF">PDF – selected friend</button><button class="g" id="pdfE">PDF – every friend (1 page each)</button></div></div>
+ <div class="card"><h3>Backup</h3><div class="row"><button id="bj">Export JSON</button><button id="bx">Export Excel</button></div></div>
+ <div class="card"><h3>Restore</h3><p class="mu">Choose a .json or .xlsx backup made by this app. It replaces all current data.</p><input type="file" id="rf" accept=".json,.xlsx,.xls"></div>
+ <div class="card"><h3>Reset</h3><button class="d" id="rst">Erase all data</button></div>`;
+ $('#pdf1').onclick=()=>pdf(false);$('#pdfA').onclick=()=>pdf(true);$('#pdfF').onclick=()=>pdfFriend($('#pf').value);$('#pdfE').onclick=()=>pdfFriend('*');
+ $('#bj').onclick=()=>dl('trip-expenses-backup.json',new Blob([JSON.stringify({app:'trip-splitter',v:1,cur:S.cur,events:S.events,disp:S.disp},null,2)],{type:'application/json'}));
+ $('#bx').onclick=xl;$('#rf').onchange=ev=>{if(ev.target.files[0])imp(ev.target.files[0]);ev.target.value=''};
+ $('#rst').onclick=async()=>{if(await modal('Erase ALL events, friends and expenses? This cannot be undone.')){const id=uid();S={cur:{NPR:1,INR:1.6,USD:135},events:[{id,name:'My Trip',friends:[],expenses:[]}],sel:id,tab:'exp',disp:BASE};editId=null;S=clean(S);render()}}}
+/* ---------- files ---------- */
+async function dl(name,blob){let d=null;try{d=await window.claude.use('downloads')}catch(e){}
+ if(d){try{await d.save({filename:name,data:blob});return}catch(e){if(e&&e.code==='declined')return}}
+ const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function xl(){if(!window.XLSX)return toast('Excel library did not load');const wb=XLSX.utils.book_new(),add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a),n);
+ add('Currencies',Object.entries(S.cur).map(([c,r])=>({Code:c,RateToNPR:r})));
+ add('Events',S.events.map(e=>({EventID:e.id,Event:e.name})));
+ add('Friends',S.events.flatMap(e=>e.friends.map(f=>({EventID:e.id,FriendID:f.id,Friend:f.name}))));
+ add('Expenses',S.events.flatMap(e=>e.expenses.map(x=>({EventID:e.id,ExpenseID:x.id,Date:x.date,Description:x.desc,Category:x.cat,PaidByID:x.payer,PaidBy:payLbl(x,e),Payers:JSON.stringify(x.payers),Amount:x.amount,Currency:x.cur,Rate:x.rate,SplitType:x.type,MembersID:x.members.join(';'),Members:splitLbl(x,e),Values:JSON.stringify(x.vals)}))));
+ const sm=[],ss=[];S.events.forEach(e=>{const c=calc(e);e.friends.forEach(f=>sm.push({Event:e.name,Friend:f.name,PaidNPR:+c.f[f.id].paid.toFixed(2),ShareNPR:+c.f[f.id].share.toFixed(2),NetNPR:+(c.f[f.id].paid-c.f[f.id].share).toFixed(2)}));settle(e,c).forEach(s=>ss.push({Event:e.name,From:s.from,To:s.to,AmountNPR:+s.amt.toFixed(2)}))});
+ add('Summary',sm);add('Settlement',ss);
+ dl('trip-expenses-backup.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/octet-stream'}))}
+async function apply(d){if(!d||typeof d!=='object')return toast('Invalid backup');if(!await modal('Restore this backup? All current data will be replaced.'))return;editId=null;S=clean({last:{},cur:d.cur,events:d.events,sel:d.sel,tab:'exp',disp:d.disp});toast('Backup restored');render()}
+function imp(file){const rd=new FileReader();rd.onerror=()=>toast('Could not read file');
+ if(/\.json$/i.test(file.name)){rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j.events||!j.events.length||!j.cur)throw 0;apply(j)}catch(e){toast('Invalid JSON backup')}};rd.readAsText(file)}
+ else{rd.onload=()=>{try{const wb=XLSX.read(rd.result,{type:'array'}),g=n=>XLSX.utils.sheet_to_json(wb.Sheets[n]||{}),cur={};
+  g('Currencies').forEach(r=>cur[String(r.Code)]=+r.RateToNPR);const ev=g('Events').map(r=>({id:String(r.EventID),name:String(r.Event),friends:[],expenses:[]})),by=id=>ev.find(e=>e.id===String(id));
+  g('Friends').forEach(r=>{const e=by(r.EventID);e&&e.friends.push({id:String(r.FriendID),name:String(r.Friend)})});
+  g('Expenses').forEach(r=>{const e=by(r.EventID);e&&e.expenses.push({id:String(r.ExpenseID),date:String(r.Date),desc:String(r.Description),cat:String(r.Category),payer:String(r.PaidByID),payers:r.Payers?JSON.parse(r.Payers):undefined,amount:+r.Amount,cur:String(r.Currency),rate:+r.Rate,type:String(r.SplitType),members:r.MembersID?String(r.MembersID).split(';'):[],vals:r.Values?JSON.parse(r.Values):{}})});
+  if(!ev.length)throw 0;apply({cur,events:ev})}catch(e){toast('Invalid Excel backup')}};rd.readAsArrayBuffer(file)}}
+function pdf(all){if(!window.jspdf)return toast('PDF library did not load');const d=new jspdf.jsPDF({orientation:'landscape',unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110];
+ (all?S.events:[E()]).forEach((e,i)=>{if(i)d.addPage();const c=calc(e);
+  d.setFontSize(18);d.text(e.name,40,45);d.setFontSize(9);d.text(`All amounts in ${D} (1 ${D} = ${R} NPR)  |  Generated ${new Date().toLocaleDateString()}  |  Friends: ${e.friends.map(x=>x.name).join(', ')||'-'}`,40,62);
+  d.setFontSize(12);d.text(`Total expense: ${D} ${f(c.total)}   |   Per person (avg): ${D} ${f(c.total/(e.friends.length||1))}`,40,82);
+  const body=c.rows.map((r,k)=>[k+1,r.x.date,r.x.desc,r.x.cat,payLbl(r.x,e),fm(r.x.amount)+' '+r.x.cur,splitLbl(r.x,e),...e.friends.map(x=>(r.sh[x.id]?f(r.sh[x.id]):'-')+(r.pay[x.id]?'\nPAID '+f(r.pay[x.id]):''))]);
+  body.push(['','','TOTAL','','','','',...e.friends.map(x=>f(c.f[x.id].share))]);
+  const last=a=>({didParseCell:h=>{if(h.section!=='body')return;if(h.row.index===a.length-1)h.cell.styles.fontStyle='bold';else if(a===body&&h.column.index>=7){const fr=e.friends[h.column.index-7];if(fr&&c.rows[h.row.index].pay[fr.id]){h.cell.styles.fillColor=[254,240,170];h.cell.styles.textColor=[0,0,0]}}}});
+  d.text('1. Expenses and each friend\'s share  (highlighted cell = friend who paid)',40,102);d.autoTable({startY:108,head:[['#','Date','Description','Category','Paid by','Original','Split',...e.friends.map(x=>x.name)]],body,styles:{fontSize:8},headStyles:{fillColor:G},...last(body)});
+  const bal=e.friends.map(x=>{const b=c.f[x.id].paid-c.f[x.id].share;return[x.name,f(c.f[x.id].paid),f(c.f[x.id].share),f(Math.abs(b)),Math.abs(b)<.005?'Settled':b>0?'Gets back':'Owes']});
+  let y=d.lastAutoTable.finalY+26;if(y>480){d.addPage();y=50}
+  d.text('2. Balances',40,y);d.autoTable({startY:y+6,head:[['Friend','Paid','Own share','Net amount','Status']],body:bal,styles:{fontSize:9},headStyles:{fillColor:G}});
+  const st=settle(e,c).map(s=>[s.from,'pays',s.to,`${D} ${f(s.amt)}`]);y=d.lastAutoTable.finalY+26;if(y>480){d.addPage();y=50}
+  d.text('3. Settlement – who pays whom',40,y);d.autoTable({startY:y+6,head:[['From','','To','Amount']],body:st.length?st:[['All settled','','','']],styles:{fontSize:9},headStyles:{fillColor:G}});
+  const cat={};c.rows.forEach(r=>cat[r.x.cat]=(cat[r.x.cat]||0)+r.n);y=d.lastAutoTable.finalY+26;if(y>480){d.addPage();y=50}
+  d.text('4. Expense by category',40,y);d.autoTable({startY:y+6,head:[['Category','Amount']],body:Object.entries(cat).map(([k,v])=>[k,`${D} ${f(v)}`]),styles:{fontSize:9},headStyles:{fillColor:G},tableWidth:300})});
+ dl((all?'all-events':E().name.replace(/[^\w-]+/g,'_'))+'-summary.pdf',d.output('blob'))}
+function pdfFriend(id){if(!window.jspdf)return toast('PDF library did not load');const e=E(),fl=id==='*'?e.friends:e.friends.filter(x=>x.id===id);if(!fl.length)return toast('Add friends first');
+ const d=new jspdf.jsPDF({unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110],c=calc(e),st=settle(e,c);
+ fl.forEach((fr,i)=>{if(i)d.addPage();const t=c.f[fr.id],b=t.paid-t.share;
+  d.setFontSize(18);d.text(`${fr.name} – expense statement`,40,45);d.setFontSize(10);d.text(`${e.name}  |  Amounts in ${D} (1 ${D} = ${R} NPR)  |  ${new Date().toLocaleDateString()}`,40,62);
+  d.autoTable({startY:75,head:[['Total paid','Own share','Net amount','Status']],body:[[f(t.paid),f(t.share),f(Math.abs(b)),Math.abs(b)<.005?'Settled':b>0?'Gets back':'Owes']],styles:{fontSize:10},headStyles:{fillColor:G}});
+  const rows=c.rows.filter(r=>r.sh[fr.id]||r.pay[fr.id]),body=rows.map(r=>[r.x.date,r.x.desc,r.x.cat,payLbl(r.x,e),f(r.n),r.sh[fr.id]?f(r.sh[fr.id]):'-',r.pay[fr.id]?f(r.pay[fr.id]):'-']);
+  body.push(['','TOTAL','','','',f(t.share),f(t.paid)]);let y=d.lastAutoTable.finalY+22;d.setFontSize(12);d.text('Expenses involving '+fr.name,40,y);
+  d.autoTable({startY:y+6,head:[['Date','Description','Category','Paid by','Expense total','Own share','Paid by '+fr.name]],body,styles:{fontSize:8},headStyles:{fillColor:G},didParseCell:h=>{if(h.section==='body'&&h.row.index===body.length-1)h.cell.styles.fontStyle='bold'}});
+  y=d.lastAutoTable.finalY+22;if(y>740){d.addPage();y=50}
+  const mine=st.filter(s=>s.fromId===fr.id||s.toId===fr.id).map(s=>s.fromId===fr.id?['Pay '+s.to,`${D} ${f(s.amt)}`]:['Receive from '+s.from,`${D} ${f(s.amt)}`]);
+  d.setFontSize(12);d.text('Settlement',40,y);d.autoTable({startY:y+6,head:[['Action','Amount']],body:mine.length?mine:[['Nothing to pay or receive','-']],styles:{fontSize:10},headStyles:{fillColor:G},tableWidth:320})});
+ dl((id==='*'?e.name.replace(/[^\w-]+/g,'_')+'-per-friend':fl[0].name.replace(/[^\w-]+/g,'_')+'-statement')+'.pdf',d.output('blob'))}
+/* ---------- events ---------- */
+document.addEventListener('click',async ev=>{const t=ev.target.closest('button');if(!t)return;const e=E(),D=t.dataset;
+ if(D.t){S.tab=D.t;return render()}
+ if(D.dt!==undefined){const z=new Date();z.setDate(z.getDate()+ +D.dt);z.setMinutes(z.getMinutes()-z.getTimezoneOffset());$('#fd').value=z.toISOString().slice(0,10);return}
+ if(D.cat){$('#fc').value=D.cat;return}
+ if(D.capply){const all=D.capply==='*',xs=S.events.flatMap(z=>z.expenses).filter(x=>x.cur!==BASE&&(all||x.cur===D.capply)&&S.cur[x.cur]&&x.rate!==S.cur[x.cur]);if(!xs.length)return toast('Existing expenses already use the current rate');if(await modal(`Update the rate on ${xs.length} existing expense(s) in all events to the current rate${all?'s':' of '+D.capply}?`)){xs.forEach(x=>x.rate=S.cur[x.cur]);toast('Rates re-applied');render()}return}
+ if(D.ed){fillForm(e.expenses.find(x=>x.id===D.ed));return scrollTo(0,0)}
+ if(D.dup){fillForm(e.expenses.find(x=>x.id===D.dup),true);toast('Copied into the form with today’s date — change what differs and Save');return scrollTo(0,0)}
+ if(D.del){const i=e.expenses.findIndex(x=>x.id===D.del);if(i<0)return;const x=e.expenses[i];e.expenses.splice(i,1);if(editId===D.del)editId=null;render();return toast('Expense deleted',['Undo',()=>{e.expenses.splice(i,0,x);render()}])}
+ if(D.fren){const f=e.friends.find(x=>x.id===D.fren);if(!f)return;const v=await modal('Rename friend',f.name);if(v){if(e.friends.some(z=>z!==f&&z.name.toLowerCase()===v.toLowerCase()))return toast('Name already exists');f.name=v;render()}return}
+ if(D.fdel){if(e.expenses.some(x=>(x.payers&&Object.prototype.hasOwnProperty.call(x.payers,D.fdel))||(Array.isArray(x.members)&&x.members.includes(D.fdel))))return toast('This friend is used in expenses — edit or delete those first');e.friends=e.friends.filter(x=>x.id!==D.fdel);return render()}
+ if(D.cdel){if(S.events.some(z=>z.expenses.some(x=>x.cur===D.cdel)))return toast('Currency is used in expenses');delete S.cur[D.cdel];if(S.disp===D.cdel)S.disp=BASE;if(S.last&&S.last.cur===D.cdel)S.last.cur=BASE;return render()}
+ if(t.id==='evnew'){const v=await modal('New event name','');if(v){const id=uid();S.events.push({id,name:v,friends:[],expenses:[]});S.sel=id;render()}}
+ if(t.id==='evren'){const v=await modal('Rename event',e.name);if(v){e.name=v;render()}}
+ if(t.id==='evdel'){if(S.events.length<2)return toast('Keep at least one event');if(await modal(`Delete event “${e.name}” with all its expenses?`)){S.events=S.events.filter(x=>x.id!==e.id);S.sel=S.events[0].id;editId=null;render()}}});
+document.addEventListener('change',ev=>{const t=ev.target;if(t.id==='evsel'){S.sel=t.value;editId=null;render()}
+ if(t.dataset.rate){const r=parseFloat(t.value);if(r>0){S.cur[t.dataset.rate]=r;save();toast('Rate updated — use “Re-apply” to update old expenses')}else{toast('Invalid rate');render()}}});
+render();
+</script></body></html>
