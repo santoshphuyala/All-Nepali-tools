@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<script>try{var t=localStorage.getItem("np-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bills &amp; Renewals Tracker</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--tx:#1b1f24;--mu:#6b7380;--bd:#e0e4ea;--ac:#2563eb;--rd:#dc2626;--am:#d97706;--gn:#16a34a;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1a1f26;--tx:#e8ebf0;--mu:#97a1ae;--bd:#2b323b;--ac:#60a5fa;--rd:#f87171;--am:#fbbf24;--gn:#4ade80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1a1f26;--tx:#e8ebf0;--mu:#97a1ae;--bd:#2b323b;--ac:#60a5fa;--rd:#f87171;--am:#fbbf24;--gn:#4ade80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:880px;margin:0 auto;padding:14px}
+h1{font-size:20px;margin:4px 0 12px}h2{font-size:16px;margin:16px 0 8px}
+nav{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+nav button{flex:1;white-space:nowrap}
+button,.b{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+button.p,nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.d{color:var(--rd)}button.s{padding:4px 8px;font-size:13px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font:inherit}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.st{font-size:12px;color:var(--mu)}.big{font-size:20px;font-weight:600}
+.r{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
+.over{border-left:4px solid var(--rd)}.soon{border-left:4px solid var(--am)}.ok{border-left:4px solid var(--gn)}.done{opacity:.55}
+.over .when{color:var(--rd);animation:bl 1s infinite}.soon .when{color:var(--am)}
+@keyframes bl{50%{opacity:.35}}
+.act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.bar{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.bar>*{flex:1;min-width:130px}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx);width:min(440px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:#0008}
+.ban{background:var(--rd);color:#fff;border-radius:10px;padding:10px 12px;margin-bottom:10px;animation:bl 1.2s infinite}
+.mu{color:var(--mu)}
+.bk{display:inline-block;margin:2px 0 4px;font-size:13px;color:var(--ac);text-decoration:none}.bk:hover{text-decoration:underline}
+</style></head><body><div class="w">
+<a class="bk" href="index.html">← All tools</a>
+<h1>🔔 Bills &amp; Renewals Tracker</h1>
+<nav id="nav"></nav><div id="main"></div></div>
+<dialog id="dlg"></dialog>
+<dialog id="cf"><div style="padding:14px"><p id="cm"></p><div class="act"><button class="p" id="cy"></button><button id="cn"></button></div></div></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const CATS=['Insurance','Subscription','Internet','Electricity','Water','Phone','Rent','Tax','Loan/EMI','Other'];
+const CYC=['monthly','quarterly','half-yearly','yearly','weekly','once'];
+const KEY='billsApp.v1';
+let D={reminders:[],expenses:[],cur:'Rs'},tab='dash',F={q:'',c:'',m:'',ec:''},storeOK=true;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){storeOK=false}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const today=()=>iso(new Date());
+const dd=s=>Math.round((new Date(s+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5);
+const money=n=>esc(D.cur)+' '+(+n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const okD=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(new Date(s+'T00:00:00'));
+const sid=v=>String(v||'').replace(/[^\w-]/g,'')||uid();
+const clean=n=>({cur:String(n&&n.cur||'Rs').slice(0,8),
+ reminders:(Array.isArray(n&&n.reminders)?n.reminders:[]).map(r=>({id:sid(r.id),name:String(r.name||'Untitled'),cat:CATS.includes(r.cat)?r.cat:'Other',ref:String(r.ref||''),amt:+r.amt||0,cycle:CYC.includes(r.cycle)?r.cycle:'monthly',due:okD(r.due)?r.due:today(),remind:+r.remind||0,notes:String(r.notes||''),day:+r.day||0,done:!!r.done})),
+ expenses:(Array.isArray(n&&n.expenses)?n.expenses:[]).map(e=>({id:sid(e.id),date:okD(e.date)?e.date:today(),title:String(e.title||'Untitled'),cat:CATS.includes(e.cat)?e.cat:'Other',amt:+e.amt||0,notes:String(e.notes||'')}))});
+F.m=today().slice(0,7);
+function addCyc(s,c,dy){const d=new Date(s+'T00:00:00'),m={monthly:1,quarterly:3,'half-yearly':6,yearly:12}[c];
+ if(m){const day=dy||d.getDate();d.setDate(1);d.setMonth(d.getMonth()+m);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()))}
+ else if(c==='weekly')d.setDate(d.getDate()+7);return iso(d)}
+const stat=r=>{if(r.done)return'done';const n=dd(r.due);return n<0?'over':n<=(+r.remind||0)?'soon':'ok'};
+const verb=r=>['Insurance','Subscription'].includes(r.cat)?'Renews':'Due';
+const when=r=>{const n=dd(r.due);return n<0?`Overdue by ${-n} day${n==-1?'':'s'}`:n==0?'Due today':n==1?'Due tomorrow':`In ${n} days`};
+const opts=(a,v)=>a.map(x=>`<option${x===v?' selected':''}>${x}</option>`).join('');
+
+function card(r,full){const s=stat(r);return `<div class="c ${s}"><div class="r"><div><b>${esc(r.name)}</b> <span class="tag">${esc(r.cat)}</span> ${r.cycle!=='once'?`<span class="tag">${r.cycle}</span>`:''}
+<div class="st">${verb(r)} ${r.due}${r.ref?' · '+esc(r.ref):''}${r.notes?' · '+esc(r.notes):''}</div></div>
+<div style="text-align:right"><div><b>${money(r.amt)}</b></div><div class="st when">${s==='done'?'Completed':when(r)}</div></div></div>
+${full?`<div class="act">${r.done?'':`<button class="s p" onclick="paid('${r.id}')">${verb(r)==='Renews'?'Mark renewed / paid':'Mark paid'}</button>`}<button class="s" onclick="editR('${r.id}')">Edit</button><button class="s d" onclick="delR('${r.id}')">Delete</button></div>`:''}</div>`}
+
+function render(){
+ $('#nav').innerHTML=[['dash','Dashboard'],['rem','Reminders'],['exp','Expenses'],['bak','Backup']].map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ ({dash,rem,exp,bak})[tab]();
+ const nn=D.reminders.filter(r=>['over','soon'].includes(stat(r))).length;document.title=(nn?`(${nn}) `:'')+'Bills & Renewals Tracker';
+ if(!storeOK)$('#main').insertAdjacentHTML('afterbegin','<div class="ban">Browser storage is unavailable, so data will not persist. Export a backup (Backup tab) before leaving.</div>');
+}
+function dash(){
+ const a=D.reminders.filter(r=>!r.done).sort((x,y)=>x.due.localeCompare(y.due));
+ const over=a.filter(r=>stat(r)==='over'),soon=a.filter(r=>stat(r)==='soon'),up=a.filter(r=>stat(r)==='ok').slice(0,5);
+ const next30=a.filter(r=>{const n=dd(r.due);return n>=0&&n<=30}).reduce((t,r)=>t+(+r.amt||0),0);
+ const mon=D.expenses.filter(e=>e.date.slice(0,7)===today().slice(0,7)).reduce((t,e)=>t+(+e.amt||0),0);
+ $('#main').innerHTML=(over.length?`<div class="ban">⚠️ ${over.length} overdue: ${over.map(r=>esc(r.name)).join(', ')}</div>`:'')+
+ `<div class="g"><div class="c"><div class="st">Overdue</div><div class="big" style="color:var(--rd)">${over.length}</div></div>
+ <div class="c"><div class="st">Due soon</div><div class="big" style="color:var(--am)">${soon.length}</div></div>
+ <div class="c"><div class="st">Next 30 days</div><div class="big">${money(next30)}</div></div>
+ <div class="c"><div class="st">Spent this month</div><div class="big">${money(mon)}</div></div></div>
+ <h2>Needs attention</h2>${over.concat(soon).map(r=>card(r,true)).join('')||'<p class="mu">Nothing urgent. 🎉</p>'}
+ <h2>Upcoming</h2>${up.map(r=>card(r,true)).join('')||'<p class="mu">No other upcoming items.</p>'}
+ <div class="bar"><button class="p" onclick="editR()">+ Add reminder</button><button onclick="editE()">+ Add expense</button></div>`;
+}
+function rem(){
+ $('#main').innerHTML=`<div class="bar"><input id="rq" placeholder="Search…" value="${esc(F.q)}" oninput="F.q=this.value;rl()"><select id="rc" onchange="F.c=this.value;rl()"><option value="">All categories</option>${opts(CATS,F.c)}</select><button class="p" onclick="editR()">+ Add</button></div><div id="rl"></div>`;rl();
+}
+function rl(){
+ const q=F.q.toLowerCase(),l=D.reminders.filter(r=>(!F.c||r.cat===F.c)&&(!q||(r.name+r.ref+r.notes).toLowerCase().includes(q))).sort((a,b)=>(a.done-b.done)||a.due.localeCompare(b.due));
+ $('#rl').innerHTML=l.map(r=>card(r,true)).join('')||'<p class="mu">No reminders yet.</p>';
+}
+function exp(){
+ $('#main').innerHTML=`<div class="bar"><input type="month" value="${F.m}" onchange="F.m=this.value;el()"><select onchange="F.ec=this.value;el()"><option value="">All categories</option>${opts(CATS,F.ec)}</select><button class="p" onclick="editE()">+ Add</button></div><div id="es"></div><div id="el"></div>`;el();
+}
+function el(){
+ const l=D.expenses.filter(e=>(!F.m||e.date.slice(0,7)===F.m)&&(!F.ec||e.cat===F.ec)).sort((a,b)=>b.date.localeCompare(a.date));
+ const t=l.reduce((s,e)=>s+(+e.amt||0),0),by={};l.forEach(e=>by[e.cat]=(by[e.cat]||0)+(+e.amt||0));
+ $('#es').innerHTML=`<div class="c"><div class="st">Total</div><div class="big">${money(t)}</div><div class="st">${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}: ${money(v)}`).join(' · ')}</div></div>`;
+ $('#el').innerHTML=l.map(e=>`<div class="c"><div class="r"><div><b>${esc(e.title)}</b> <span class="tag">${esc(e.cat)}</span><div class="st">${e.date}${e.notes?' · '+esc(e.notes):''}</div></div><b>${money(e.amt)}</b></div><div class="act"><button class="s" onclick="editE('${e.id}')">Edit</button><button class="s d" onclick="delE('${e.id}')">Delete</button></div></div>`).join('')||'<p class="mu">No expenses for this filter.</p>';
+}
+function bak(){
+ const np='Notification' in window?Notification.permission:'unsupported';
+ $('#main').innerHTML=`<div class="c"><b>Backup</b><div class="act"><button class="p" onclick="expJSON()">Export JSON</button><button onclick="expXLS()">Export Excel</button></div>
+ <label>Restore from JSON or Excel (replaces current data)</label><input type="file" id="fi" accept=".json,.xlsx,.xls" onchange="imp(this.files[0])"></div>
+ <div class="c"><b>Settings</b><label>Currency label</label><input value="${esc(D.cur)}" onchange="D.cur=this.value||'Rs';save()">
+ <label>Browser notifications (${np})</label><button onclick="askN()">Enable renewal notifications</button>
+ <div class="st" style="margin-top:6px">Notifications appear when the page is opened. Data is stored in this browser, so export a backup regularly.</div></div>
+ <div class="c"><button class="d" onclick="clearAll()">Clear all data</button></div>`;
+}
+/* dialogs */
+function open_(h){$('#dlg').innerHTML=h;$('#dlg').showModal()}
+const close_=()=>$('#dlg').close();
+const err=m=>{$('#err').textContent=m};
+function ask(msg,ok='OK',no='Cancel'){return new Promise(res=>{const d=$('#cf');$('#cm').textContent=msg;$('#cy').textContent=ok;$('#cn').textContent=no;$('#cn').style.display=no?'':'none';
+ const f=v=>{d.close();res(v)};$('#cy').onclick=()=>f(true);$('#cn').onclick=()=>f(false);d.oncancel=()=>res(false);d.showModal()})}
+async function clearAll(){if(await ask('Delete ALL reminders and expenses?','Delete','Cancel')){D.reminders=[];D.expenses=[];save();render()}}
+function editR(id){const r=D.reminders.find(x=>x.id===id)||{name:'',cat:'Subscription',ref:'',amt:'',cycle:'monthly',due:today(),remind:7,notes:''};
+ open_(`<div style="padding:14px"><b>${id?'Edit':'Add'} reminder</b>
+ <label>Name</label><input id="f_n" value="${esc(r.name)}" placeholder="Netflix, NTC Internet, Life Insurance…">
+ <label>Category</label><select id="f_c">${opts(CATS,r.cat)}</select>
+ <label>Policy / account / customer no. (optional)</label><input id="f_r" value="${esc(r.ref)}">
+ <div class="g"><div><label>Amount</label><input id="f_a" type="number" step="any" value="${r.amt}"></div><div><label>Repeats</label><select id="f_y">${opts(CYC,r.cycle)}</select></div>
+ <div><label>Next due / renewal date</label><input id="f_d" type="date" value="${r.due}"></div><div><label>Alert days before</label><input id="f_m" type="number" min="0" value="${r.remind}"></div></div>
+ <label>Notes</label><input id="f_t" value="${esc(r.notes)}"><div id="err" class="st" style="color:var(--rd)"></div>
+ <div class="act"><button class="p" onclick="saveR('${id||''}')">Save</button><button onclick="close_()">Cancel</button></div></div>`)}
+function saveR(id){const o={name:$('#f_n').value.trim(),cat:$('#f_c').value,ref:$('#f_r').value.trim(),amt:+$('#f_a').value||0,cycle:$('#f_y').value,due:$('#f_d').value,remind:+$('#f_m').value||0,notes:$('#f_t').value.trim()};
+ if(!o.name||!okD(o.due))return err('Name and a valid date are required.');
+ o.day=+o.due.slice(8);const r=D.reminders.find(x=>x.id===id);
+ if(r){const ch=r.due!==o.due;Object.assign(r,o);if(ch)r.done=false}else D.reminders.push({id:uid(),done:false,...o});save();close_();render()}
+async function delR(id){if(await ask('Delete this reminder?','Delete','Cancel')){D.reminders=D.reminders.filter(r=>r.id!==id);save();render()}}
+async function paid(id){const r=D.reminders.find(x=>x.id===id);if(!r)return;
+ if(r.amt&&await ask(`Log ${D.cur} ${r.amt} to expenses?`,'Log it','Skip'))D.expenses.push({id:uid(),date:today(),title:r.name,cat:r.cat,amt:r.amt,notes:'Paid via reminder'});
+ if(r.cycle==='once')r.done=true;else{const dy=r.day||+r.due.slice(8);let n=addCyc(r.due,r.cycle,dy),g=0;while(dd(n)<0&&g++<500)n=addCyc(n,r.cycle,dy);r.due=n}
+ save();render()}
+function editE(id){const e=D.expenses.find(x=>x.id===id)||{title:'',cat:'Other',amt:'',date:today(),notes:''};
+ open_(`<div style="padding:14px"><b>${id?'Edit':'Add'} expense</b>
+ <label>Title</label><input id="e_t" value="${esc(e.title)}">
+ <div class="g"><div><label>Amount</label><input id="e_a" type="number" step="any" value="${e.amt}"></div><div><label>Date</label><input id="e_d" type="date" value="${e.date}"></div></div>
+ <label>Category</label><select id="e_c">${opts(CATS,e.cat)}</select><label>Notes</label><input id="e_n" value="${esc(e.notes)}"><div id="err" class="st" style="color:var(--rd)"></div>
+ <div class="act"><button class="p" onclick="saveE('${id||''}')">Save</button><button onclick="close_()">Cancel</button></div></div>`)}
+function saveE(id){const o={title:$('#e_t').value.trim(),amt:+$('#e_a').value||0,date:$('#e_d').value,cat:$('#e_c').value,notes:$('#e_n').value.trim()};
+ if(!o.title||!okD(o.date))return err('Title and a valid date are required.');
+ const e=D.expenses.find(x=>x.id===id);e?Object.assign(e,o):D.expenses.push({id:uid(),...o});save();close_();render()}
+async function delE(id){if(await ask('Delete this expense?','Delete','Cancel')){D.expenses=D.expenses.filter(e=>e.id!==id);save();render()}}
+/* backup */
+async function dl(name,data){try{const d=await claude.use('downloads');if(d){await d.save({filename:name,data});return}}catch(e){if(e&&e.code==='declined')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=name;a.click()}
+const stamp=()=>today();
+function expJSON(){dl(`bills-backup-${stamp()}.json`,new Blob([JSON.stringify(D,null,2)],{type:'application/json'}))}
+function expXLS(){if(typeof XLSX==='undefined')return ask('The Excel library failed to load. Check your connection and reload.','OK','');const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(D.reminders.map(r=>({ID:r.id,Name:r.name,Category:r.cat,Reference:r.ref,Amount:r.amt,Repeats:r.cycle,DueDate:r.due,AlertDays:r.remind,Notes:r.notes,Completed:r.done?'yes':'no'}))),'Reminders');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(D.expenses.map(e=>({ID:e.id,Date:e.date,Title:e.title,Category:e.cat,Amount:e.amt,Notes:e.notes}))),'Expenses');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Currency:D.cur}]),'Settings');
+ const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+ dl(`bills-backup-${stamp()}.xlsx`,new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))}
+const dstr=v=>v instanceof Date?iso(new Date(v.getTime()+432e5)):String(v||'').slice(0,10);
+function imp(f){if(!f)return;const rd=new FileReader();
+ rd.onload=()=>{try{let n;
+  if(/\.json$/i.test(f.name)){n=JSON.parse(rd.result);if(!Array.isArray(n.reminders)||!Array.isArray(n.expenses))throw 0}
+  else{const wb=XLSX.read(rd.result,{type:'array',cellDates:true}),S=k=>wb.Sheets[k]?XLSX.utils.sheet_to_json(wb.Sheets[k]):[];if(!wb.Sheets.Reminders&&!wb.Sheets.Expenses)throw 0;
+   n={cur:(S('Settings')[0]||{}).Currency||D.cur,
+   reminders:S('Reminders').map(r=>({id:r.ID||uid(),name:String(r.Name||''),cat:r.Category||'Other',ref:String(r.Reference||''),amt:+r.Amount||0,cycle:r.Repeats||'monthly',due:dstr(r.DueDate),remind:+r.AlertDays||0,notes:String(r.Notes||''),done:r.Completed==='yes'})),
+   expenses:S('Expenses').map(e=>({id:e.ID||uid(),date:dstr(e.Date),title:String(e.Title||''),cat:e.Category||'Other',amt:+e.Amount||0,notes:String(e.Notes||'')}))}}
+  n=clean(n);ask(`Replace current data with ${n.reminders.length} reminders and ${n.expenses.length} expenses?`,'Replace','Cancel').then(y=>{if(y){D=n;save();render()}});
+ }catch(e){ask('Could not read that file. Use a backup exported from this app.','OK','')}$('#fi').value=''};
+ /\.json$/i.test(f.name)?rd.readAsText(f):rd.readAsArrayBuffer(f)}
+/* notifications */
+function askN(){try{if(!('Notification' in window))return ask('Notifications are not supported here.','OK','');Promise.resolve(Notification.requestPermission()).then(()=>{bak();notify()},()=>{})}catch(e){ask('Notifications are blocked in this view.','OK','')}}
+function notify(){try{if(!('Notification' in window)||Notification.permission!=='granted')return;
+ const k='billsApp.notified',t=today();if(localStorage.getItem(k)===t)return;
+ const l=D.reminders.filter(r=>['over','soon'].includes(stat(r)));if(!l.length)return;
+ new Notification('Bills & renewals',{body:l.slice(0,5).map(r=>`${r.name}: ${when(r)}`).join('\n')});localStorage.setItem(k,t)}catch(e){}}
+try{localStorage.setItem('billsApp.t','1');localStorage.removeItem('billsApp.t')}catch(e){storeOK=false}
+try{const s=localStorage.getItem(KEY);if(s)D=clean(JSON.parse(s))}catch(e){}
+render();notify();
+</script></body></html>

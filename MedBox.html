@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("np-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MedBox – Family medicine tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f7f6;--sf:#fff;--ink:#14262b;--mut:#5b7176;--ln:#d5e3e1;--tl:#0e7c7b;--tlt:#dff0ee;--wn:#a86400;--wnt:#fff0d6;--er:#b3261e;--ert:#fde4e1;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1d;--sf:#16272b;--ink:#e6f1f0;--mut:#93aaad;--ln:#27403f;--tl:#4fc4c0;--tlt:#18383a;--wn:#f0b251;--wnt:#3a2d12;--er:#ff8f86;--ert:#3d1b19;--on:#0e1a1d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a1d;--sf:#16272b;--ink:#e6f1f0;--mut:#93aaad;--ln:#27403f;--tl:#4fc4c0;--tlt:#18383a;--wn:#f0b251;--wnt:#3a2d12;--er:#ff8f86;--ert:#3d1b19;--on:#0e1a1d;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;padding-bottom:84px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:14px 16px 10px;display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ln)}
+h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.02em}
+h2{font-size:18px;margin:0 0 12px;font-weight:600}
+main{max-width:720px;margin:0 auto;padding:16px}
+select,input{width:100%;font:inherit;color:var(--ink);background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin-top:4px}
+header select{width:auto;margin:0;max-width:46vw}
+label{display:block;margin-bottom:12px;font-size:14px;color:var(--mut)}
+button{font:inherit;font-weight:600;background:var(--tl);color:var(--on);border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--tl);border:1px solid var(--ln)}
+button.sm{padding:6px 10px;font-size:14px}
+button.dg{color:var(--er)}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid var(--tl);outline-offset:2px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.nm{font-weight:800;font-size:18px;letter-spacing:-.01em}
+.mut{color:var(--mut);font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:2px 10px 2px 3px;border-radius:99px;background:var(--tlt);color:var(--ink)}
+.av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.bar{height:8px;border-radius:9px;background:var(--ln);margin:10px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--tl)}
+.low .bar i,.out .bar i{background:var(--er)}.soon .bar i{background:var(--wn)}
+.tag{font-size:13px;font-weight:600;padding:2px 8px;border-radius:8px}
+.tag.low,.tag.out{background:var(--ert);color:var(--er)}.tag.low{animation:blink 1.1s ease-in-out infinite}.tag.soon{background:var(--wnt);color:var(--wn)}.tag.ok,.tag.done{background:var(--tlt);color:var(--tl)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:flex-end}
+.row.l{justify-content:flex-start}
+.alert{border-left:5px solid var(--wn);background:var(--wnt);padding:12px 14px;border-radius:10px;margin-bottom:10px}
+.alert.low,.alert.out{border-color:var(--er);background:var(--ert);animation:blink 1.1s ease-in-out infinite}@keyframes blink{50%{opacity:.45}}@media (prefers-reduced-motion:reduce){.alert.low,.alert.out,.tag.low{animation:none}}.slot{font-weight:600;margin:18px 0 8px}.chk{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.chk label{margin:0;display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border:1px solid var(--ln);border-radius:99px;color:var(--ink)}.chk input{width:auto;margin:0}
+.empty{text-align:center;color:var(--mut);padding:28px 10px}
+.bar-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+.big{font-size:34px;font-weight:800;letter-spacing:-.03em}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--ln);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:6}
+nav button{flex:1;background:transparent;color:var(--mut);font-size:12px;padding:8px 1px}
+nav button.on{color:var(--tl);background:var(--tlt)}
+dialog{border:1px solid var(--ln);border-radius:16px;background:var(--sf);color:var(--ink);width:min(440px,92vw);padding:18px;max-height:88vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog img{max-width:100%;border-radius:10px}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:14px;z-index:20;display:none}
+@media print{header .nopr,nav,.row,button,#toast{display:none!important}body{background:#fff;color:#000}.card{break-inside:avoid;border-color:#999}}
+.bk{display:block;font-size:13px;font-weight:600;color:var(--tl);text-decoration:none}.bk:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<header><div><a class="bk" href="index.html">← All tools</a><h1>MedBox</h1></div><span class="nopr"><select id="who" aria-label="Show medicines for"></select></span></header>
+<main id="v"></main>
+<nav id="nav"></nav>
+<input type="file" id="rf" hidden accept=".json,.xlsx">
+<dialog id="dlg"></dialog>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>{const z=new Date(d);return z.getFullYear()+'-'+String(z.getMonth()+1).padStart(2,'0')+'-'+String(z.getDate()).padStart(2,'0')};
+const today=()=>iso(new Date());
+const addD=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d};
+const fmt=d=>new Date(d).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+const rs=n=>'Rs '+(+n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const COL=['#0e7c7b','#b5446e','#6b5bd6','#c2630a','#2f7d32','#3a6ea5'];
+let S={people:[],meds:[],exp:[],rx:[]},tab='today',who='all',db;
+const TABS=[['today','Today'],['meds','Meds'],['fc','Forecast'],['exp','Spend'],['rx','Rx'],['ppl','People']];
+
+/* IndexedDB */
+function open(){return new Promise((res,rej)=>{const r=indexedDB.open('medbox',1);
+r.onupgradeneeded=()=>{const d=r.result;['people','meds','exp','rx'].forEach(s=>d.createObjectStore(s,{keyPath:'id',autoIncrement:true}))};
+r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const all=s=>req(db.transaction(s).objectStore(s).getAll());
+const put=async(s,o)=>{const id=await req(db.transaction(s,'readwrite').objectStore(s).put(o));o.id=o.id??id;return o};
+const del=(s,id)=>req(db.transaction(s,'readwrite').objectStore(s).delete(id));
+async function load(){for(const k of Object.keys(S))S[k]=await all(k)}
+
+/* helpers */
+const pn=id=>(S.people.find(p=>p.id==id)||{name:'?'}).name;
+const pc=id=>COL[Math.max(0,S.people.findIndex(p=>p.id==id))%COL.length];
+const chip=id=>`<span class="chip"><span class="av" style="background:${pc(id)}">${esc(pn(id)[0]||'?')}</span>${esc(pn(id))}</span>`;
+const vis=a=>who==='all'?a:a.filter(x=>x.person==who);
+const SL=[['m','Morning','08:00'],['a','Afternoon','13:00'],['e','Evening','18:00'],['n','Night','21:00']];
+const DEF={1:['m'],2:['m','n'],3:['m','a','n'],4:['m','a','e','n']};
+const slotsOf=m=>m.slots&&m.slots.length?m.slots:(DEF[m.times]||['m']);
+const daily=m=>(m.qty||1)*slotsOf(m).length;
+/* forecast: every scheduled dose is assumed taken, whether or not it was ticked */
+const est=m=>Math.max(0,(m.stock||0)-daily(m)*(Date.now()-(m.sd||Date.now()))/864e5);
+const ld=m=>est(m)/daily(m);
+const ended=m=>m.days&&new Date(m.start).getTime()+m.days*864e5<=Date.now();
+const status=m=>m.done||ended(m)?'done':ld(m)<=0?'out':ld(m)<=3?'low':ld(m)<=7?'soon':'ok';
+const runout=m=>new Date(Date.now()+ld(m)*864e5);
+const lft=m=>{const l=ld(m);return l<=0?'Out of stock':l<1?'Under 1 day left':(l<10?+l.toFixed(1):Math.floor(l))+' days left'};
+const snz={};let fc=30,q='';
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2400)}
+
+/* generic form dialog */
+function ask(title,fs,v,ok,btn){const d=$('#dlg');if(d.open)d.close();
+const inp=f=>f.t==='sel'?`<select id="f_${f.k}">${f.o.map(o=>`<option value="${o[0]}"${String(o[0])===String(v[f.k])?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:f.t==='chk'?`<div class="chk" id="f_${f.k}">${f.o.map(o=>`<label><input type="checkbox" value="${o[0]}"${(v[f.k]||[]).includes(o[0])?' checked':''}>${esc(o[1])}</label>`).join('')}</div>`:`<input id="f_${f.k}" type="${f.t||'text'}"${f.t==='number'?' step="any" min="0" inputmode="decimal"':''}${f.t==='file'?' accept="image/*,application/pdf"':''} value="${f.t==='file'?'':esc(v[f.k]??'')}"${f.p?` placeholder="${esc(f.p)}"`:''}>`;
+d.innerHTML=`<h2>${title}</h2>`+fs.map(f=>f.t==='chk'?`<div class="mut" style="margin-bottom:12px">${f.l}${inp(f)}</div>`:`<label>${f.l}${inp(f)}</label>`).join('')+`<div class="row"><button class="ghost" id="cx">Cancel</button><button id="sv">${btn||'Save'}</button></div>`;
+d.showModal();$('#cx').onclick=()=>d.close();
+$('#sv').onclick=async()=>{const r={};for(const f of fs){const e=$('#f_'+f.k);let x=f.t==='file'?e.files[0]:f.t==='chk'?[...e.querySelectorAll('input:checked')].map(i=>i.value):e.value;if(f.t==='number')x=x===''?null:parseFloat(x);if(f.r&&(x==null||x===''||(Array.isArray(x)&&!x.length)))return toast(f.l+' is required');r[f.k]=x}await ok(r);d.close()}}
+const popts=()=>S.people.map(p=>[p.id,p.name]);
+
+/* actions */
+function medForm(m){const n=!m;m=m?{...m,stock:+est(m).toFixed(1),slots:slotsOf(m)}:{person:who==='all'?S.people[0].id:+who,qty:1,slots:['m'],start:today()};
+ask(n?'Add medicine':'Edit medicine',[
+{k:'name',l:'Medicine name',r:1},{k:'person',l:'For',t:'sel',o:popts()},
+{k:'dose',l:'Strength (e.g. 500 mg)'},{k:'qty',l:'Units per dose (tablets, ml)',t:'number',r:1},
+{k:'slots',l:'Dose times',t:'chk',o:SL.map(x=>[x[0],x[1]+' '+x[2]]),r:1},{k:'note',l:'Instructions (e.g. after meals)'},
+{k:'stock',l:'Units in stock now',t:'number',r:1},{k:'start',l:'Start date',t:'date'},
+{k:'days',l:'Course length in days (leave empty if ongoing)',t:'number'}].concat(n?[{k:'cost',l:'Amount paid (optional)',t:'number'}]:[]),m,async r=>{
+if(!r.qty)return toast('Units per dose must be above 0');
+const cost=r.cost;delete r.cost;r.person=+r.person;r.times=r.slots.length;r.sd=Date.now();if(n)r.done=false;
+const o=await put('meds',{...m,...r});
+if(n&&cost>0)await put('exp',{date:today(),amount:cost,person:o.person,med:o.name,note:'Purchase'});
+await refresh();toast('Medicine saved')})}
+function refill(m){ask('Refill '+esc(m.name),[{k:'add',l:'Units added',t:'number',r:1},{k:'cost',l:'Amount paid (optional)',t:'number'}],{},async r=>{
+m.stock=est(m)+r.add;m.sd=Date.now();m.done=false;await put('meds',m);
+if(r.cost>0)await put('exp',{date:today(),amount:r.cost,person:m.person,med:m.name,note:'Refill'});
+await refresh();toast('Stock updated')},'Add stock')}
+async function take(m,sl){const t=today(),k=m.tk&&m.tk.d===t?m.tk:{d:t,s:[]};k.s=k.s.includes(sl)?k.s.filter(x=>x!==sl):[...k.s,sl];m.tk=k;await put('meds',m);await refresh()}
+async function finish(m){m.done=true;await put('meds',m);await refresh();toast('Marked as finished')}
+async function restart(m){m.done=false;m.days=null;m.stock=0;m.sd=Date.now();await put('meds',m);await refresh();refill(m)}
+function confirmDel(label,fn){ask('Delete '+esc(label)+'?',[],{},async()=>{await fn();await refresh()},'Delete')}
+function expForm(x){ask(x?'Edit expense':'Add expense',[{k:'date',l:'Date',t:'date'},{k:'amount',l:'Amount',t:'number',r:1},{k:'person',l:'For',t:'sel',o:popts()},{k:'med',l:'Medicine or item'},{k:'note',l:'Note'}],x||{date:today(),person:who==='all'?S.people[0].id:+who},async r=>{r.person=+r.person;await put('exp',{...x,...r});await refresh();toast('Expense saved')})}
+function rxForm(x){ask(x?'Edit prescription':'Save prescription',[{k:'title',l:'Title (e.g. Dr. visit, Dec 2026)',r:1},{k:'person',l:'For',t:'sel',o:popts()},{k:'date',l:'Date',t:'date'},{k:'doctor',l:'Doctor or clinic'},{k:'file',l:x?'Replace file (optional)':'Photo or PDF',t:'file',r:!x}],x||{date:today(),person:who==='all'?S.people[0].id:+who},async r=>{
+const f=r.file;delete r.file;r.person=+r.person;await put('rx',{...x,...r,...(f?{fname:f.name,type:f.type,blob:f}:{})});await refresh();toast('Prescription saved')})}
+function viewRx(x){const u=URL.createObjectURL(x.blob);
+if(x.type.startsWith('image/')){const d=$('#dlg');d.innerHTML=`<h2>${esc(x.title)}</h2><img src="${u}" alt="Prescription"><div class="row"><button id="cx">Close</button></div>`;d.showModal();$('#cx').onclick=()=>d.close()}
+else window.open(u,'_blank')}
+function pplForm(p){ask(p?'Rename person':'Add person',[{k:'name',l:'Name',r:1},{k:'rel',l:'Relation (optional)'}],p||{},async r=>{await put('people',{...p,...r});await refresh()})}
+async function alerts(){if(!('Notification'in window))return toast('Alerts are not supported in this browser');
+const r=await Notification.requestPermission();toast(r==='granted'?'Alerts on':'Alerts blocked');notify()}
+function notify(){try{if(!('Notification'in window)||Notification.permission!=='granted')return;const k='medbox-n-'+today();if(localStorage.getItem(k))return;
+const l=S.meds.filter(m=>['low','out'].includes(status(m)));if(!l.length)return;localStorage.setItem(k,1);
+new Notification('MedBox: stock running low',{body:l.map(m=>m.name+' ('+pn(m.person)+')').join(', ')})}catch(e){}}
+
+/* ask whether a nearly finished medicine is still needed */
+function due(){const d=$('#dlg');if(d.open)return;const m=S.meds.find(m=>status(m)!=='done'&&ld(m)<1&&!snz[m.id]);if(!m)return;
+d.innerHTML=`<h2>${esc(m.name)} is almost finished</h2><p>${esc(pn(m.person))}’s ${esc(m.name)} ${ld(m)<=0?'has run out':'will run out in under a day'}. Is it still needed, or is the course finished?</p><div class="row"><button class="ghost" id="q3">Ask later</button><button class="ghost" id="q2">Course finished</button><button id="q1">Still needed, refill</button></div>`;
+d.oncancel=()=>{snz[m.id]=1};d.showModal();$('#q1').onclick=()=>refill(m);$('#q2').onclick=async()=>{d.close();await finish(m)};$('#q3').onclick=()=>{snz[m.id]=1;d.close();due()}}
+
+/* backup and restore */
+const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+const toBlob=u=>{const [h,b]=u.split(','),t=atob(b),a=new Uint8Array(t.length);for(let i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return new Blob([a],{type:(h.match(/:(.*?);/)||[])[1]||''})};
+const clr=n=>req(db.transaction(n,'readwrite').objectStore(n).clear());
+function plainSave(name,data){const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('Backup downloaded')}
+async function saveFile(name,data){let d=null;try{d=window.claude?await claude.use('downloads'):null}catch(e){}if(!d)return plainSave(name,data);
+try{await d.save({filename:name,data});toast('Backup saved')}catch(e){if(!e||e.code!=='declined')toast('Could not save the file')}}
+async function exportJSON(){const rx=[];for(const {blob,...o} of S.rx)rx.push({...o,data:await b64(blob)});
+saveFile('medbox-backup-'+today()+'.json',JSON.stringify({app:'medbox',v:2,people:S.people,meds:S.meds,exp:S.exp,rx}))}
+function exportXLS(){if(!window.XLSX)return toast('The Excel library did not load');
+const sh=a=>XLSX.utils.json_to_sheet(a.length?a:[{}]),wb=XLSX.utils.book_new(),add=(n,a)=>XLSX.utils.book_append_sheet(wb,sh(a),n);
+add('People',S.people.map(p=>({Name:p.name,Relation:p.rel||''})));
+add('Medicines',S.meds.map(m=>({Name:m.name,Person:pn(m.person),Strength:m.dose||'',UnitsPerDose:m.qty,DoseTimes:slotsOf(m).join(','),Instructions:m.note||'',StockNow:+est(m).toFixed(1),Start:m.start||'',CourseDays:m.days||'',Finished:m.done?'yes':''})));
+add('Expenses',S.exp.map(x=>({Date:x.date,Amount:x.amount,Person:pn(x.person),Item:x.med||'',Note:x.note||''})));
+add('Prescriptions',S.rx.map(x=>({Title:x.title,Person:pn(x.person),Date:x.date||'',Doctor:x.doctor||'',File:x.fname})));
+saveFile('medbox-backup-'+today()+'.xlsx',XLSX.write(wb,{bookType:'xlsx',type:'array'}))}
+function restore(f){const x=f.name.toLowerCase().endsWith('.xlsx');
+ask(x?'Add records from this Excel file?':'Replace all data with this backup?',[],{},async()=>{try{
+if(!x){const j=JSON.parse(await f.text());if(j.app!=='medbox')throw 0;
+for(const n of['people','meds','exp','rx'])await clr(n);
+for(const n of['people','meds','exp'])for(const o of j[n]||[])await put(n,o);
+for(const o of j.rx||[]){const {data,...r}=o;await put('rx',{...r,blob:toBlob(data)})}}
+else{const wb=XLSX.read(await f.arrayBuffer()),rows=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n]):[],ids={};
+for(const p of S.people)ids[p.name]=p.id;
+const pid=async n=>{n=String(n||'Me');return ids[n]||(ids[n]=(await put('people',{name:n})).id)};
+for(const r of rows('People'))if(r.Name)await pid(r.Name);
+for(const r of rows('Medicines')){if(!r.Name)continue;const sl=String(r.DoseTimes||'m').split(',').filter(k=>SL.some(z=>z[0]===k));
+await put('meds',{name:String(r.Name),person:await pid(r.Person),dose:r.Strength||'',qty:+r.UnitsPerDose||1,slots:sl.length?sl:['m'],times:sl.length||1,note:r.Instructions||'',stock:+r.StockNow||0,sd:Date.now(),start:String(r.Start||today()),days:+r.CourseDays||null,done:r.Finished==='yes'})}
+for(const r of rows('Expenses'))if(r.Amount)await put('exp',{date:String(r.Date||today()),amount:+r.Amount,person:await pid(r.Person),med:r.Item||'',note:r.Note||''})}
+toast('Restore complete')}catch(e){toast('That file could not be read')}await load();if(!S.people.length){await put('people',{name:'Me',rel:'Self'});await load()}render()},'Restore')}
+
+/* views */
+function medCard(m){const s=status(m),l=ld(m),end=m.days?new Date(new Date(m.start).getTime()+m.days*864e5):null,sl=slotsOf(m).map(k=>SL.find(z=>z[0]===k)[1]).join(', ');
+return `<div class="card ${s}"><div class="top"><div><div class="nm">${esc(m.name)} <span class="mut">${esc(m.dose||'')}</span></div>${chip(m.person)}</div><span class="tag ${s}">${s==='done'?'Finished':lft(m)}</span></div>
+${s==='done'?'':`<div class="bar"><i style="width:${Math.min(100,l/30*100)}%"></i></div>`}
+<div class="mut">${m.qty} × ${slotsOf(m).length}/day (${sl})${m.note?' · '+esc(m.note):''}<br>About ${+est(m).toFixed(1)} units left${s!=='done'&&l>0?' · runs out '+fmt(runout(m)):''}${end?' · course ends '+fmt(end):''}</div>
+<div class="row l">${s==='done'?`<button class="sm" data-a="redo" data-i="${m.id}">Restart</button>`:`<button class="sm" data-a="refill" data-i="${m.id}">Refill</button>`}<button class="sm ghost" data-a="edit" data-i="${m.id}">Edit</button><button class="sm ghost dg" data-a="dmed" data-i="${m.id}">Delete</button></div></div>`}
+function vToday(){const ms=vis(S.meds).filter(m=>status(m)!=='done'),low=ms.filter(m=>['low','out'].includes(status(m))).sort((a,b)=>ld(a)-ld(b));
+let h='';
+if('Notification'in window&&Notification.permission!=='granted')h+=`<div class="card"><div class="mut">Get a notification when you open MedBox and stock is low.</div><div class="row l"><button class="sm" data-a="alerts">Turn on alerts</button></div></div>`;
+h+=low.map(m=>{const q=ld(m)<1;return `<div class="alert ${status(m)}"><b>${esc(m.name)}</b> for ${esc(pn(m.person))}: ${ld(m)<=0?'out of stock, refill now.':lft(m).toLowerCase()+', runs out '+fmt(runout(m))+'.'}${q?' Still needed, or is the course finished?':''}<div class="row l"><button class="sm" data-a="refill" data-i="${m.id}">Refill</button>${q?`<button class="sm ghost" data-a="fin" data-i="${m.id}">Course finished</button>`:''}</div></div>`}).join('');
+h+=`<h2>Today’s doses</h2>`;
+const act=ms.filter(m=>!m.days||new Date(m.start).getTime()+m.days*864e5>Date.now());let any=0;
+for(const z of SL){const l=act.filter(m=>slotsOf(m).includes(z[0]));if(!l.length)continue;any=1;
+h+=`<div class="slot">${z[1]} · ${z[2]}</div>`+l.map(m=>{const t=m.tk&&m.tk.d===today()&&m.tk.s.includes(z[0]);return `<div class="card"><div class="top"><div><div class="nm">${esc(m.name)} <span class="mut">${esc(m.dose||'')}</span></div>${chip(m.person)}<div class="mut">${m.qty} unit${m.qty==1?'':'s'}${m.note?' · '+esc(m.note):''}</div></div><button class="sm${t?'':' ghost'}" data-a="take" data-i="${m.id}" data-s="${z[0]}">${t?'Taken ✓':'Mark taken'}</button></div></div>`}).join('')}
+if(!any)h+=`<div class="empty">No medicines yet. Add one in the Meds tab.</div>`;
+return h+`<p class="mut">Stock forecasts assume every scheduled dose is taken, so you are warned even if a dose is not ticked.</p>`}
+function vMeds(){const ms=vis(S.meds).filter(m=>!q.trim()||(m.name+' '+(m.dose||'')+' '+pn(m.person)).toLowerCase().includes(q.trim().toLowerCase())).sort((a,b)=>(status(a)==='done')-(status(b)==='done')||ld(a)-ld(b));
+return `<div class="bar-h"><h2 style="margin:0">${who==='all'?'All medicines':esc(pn(who))+'’s medicines'}</h2><span><button class="sm ghost" data-a="print">Print</button> <button class="sm" data-a="addmed">Add</button></span></div><input id="q" type="search" placeholder="Search medicines" value="${esc(q)}" aria-label="Search medicines" style="margin:0 0 12px">`+(ms.length?ms.map(medCard).join(''):`<div class="empty">Nothing here yet. Add the first medicine.</div>`)}
+function vFc(){const ms=vis(S.meds).filter(m=>status(m)!=='done').sort((a,b)=>ld(a)-ld(b)),need=ms.map(m=>[m,Math.max(0,Math.ceil(daily(m)*fc-est(m)))]).filter(x=>x[1]>0);
+return `<div class="bar-h"><h2 style="margin:0">Stock forecast</h2><select id="fc" style="width:auto;margin:0" aria-label="Forecast period">${[7,15,30,60].map(n=>`<option value="${n}"${n===fc?' selected':''}>Next ${n} days</option>`).join('')}</select></div>`+
+(ms.length?ms.map(m=>`<div class="card ${status(m)}"><div class="top"><div><div class="nm">${esc(m.name)}</div>${chip(m.person)}</div><span class="tag ${status(m)}">${lft(m)}</span></div><div class="bar"><i style="width:${Math.min(100,ld(m)/fc*100)}%"></i></div><div class="mut">${ld(m)>0?'Runs out '+fmt(runout(m)):'Already out'} · uses ${daily(m)} unit${daily(m)==1?'':'s'} a day</div></div>`).join('')
++`<div class="card"><h2>To buy for the next ${fc} days</h2>`+(need.length?need.map(x=>`<div class="top" style="margin-bottom:6px"><span>${esc(x[0].name)} ${chip(x[0].person)}</span><b>${x[1]} units</b></div>`).join(''):'<div class="mut">Current stock covers this period.</div>')+'</div>':`<div class="empty">Add medicines to see a forecast.</div>`)}
+function vExp(){const e=vis(S.exp).sort((a,b)=>b.date.localeCompare(a.date)),mo=today().slice(0,7),tm=e.filter(x=>x.date.startsWith(mo)).reduce((s,x)=>s+x.amount,0),tot=e.reduce((s,x)=>s+x.amount,0);
+const by={};e.filter(x=>x.date.startsWith(mo)).forEach(x=>by[x.person]=(by[x.person]||0)+x.amount);
+return `<div class="bar-h"><h2 style="margin:0">Expenses</h2><button class="sm" data-a="addexp">Add</button></div><div class="card"><div class="mut">This month</div><div class="big">${rs(tm)}</div><div class="mut">All time ${rs(tot)}</div>${Object.keys(by).map(k=>`<div class="top" style="margin-top:8px">${chip(+k)}<b>${rs(by[k])}</b></div>`).join('')}</div>`+
+(e.length?e.map(x=>`<div class="card"><div class="top"><div><div class="nm">${esc(x.med||'Medicine')}</div><div class="mut">${fmt(x.date)}${x.note?' · '+esc(x.note):''}</div>${chip(x.person)}</div><div style="text-align:right"><b>${rs(x.amount)}</b><br><button class="sm ghost" data-a="eexp" data-i="${x.id}">Edit</button> <button class="sm ghost dg" data-a="dexp" data-i="${x.id}">Delete</button></div></div></div>`).join(''):`<div class="empty">No expenses recorded.</div>`)}
+function vRx(){const r=vis(S.rx).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+return `<div class="bar-h"><h2 style="margin:0">Prescriptions</h2><button class="sm" data-a="addrx">Upload</button></div>`+(r.length?r.map(x=>`<div class="card"><div class="top"><div><div class="nm">${esc(x.title)}</div><div class="mut">${x.date?fmt(x.date):''}${x.doctor?' · '+esc(x.doctor):''}</div>${chip(x.person)}</div></div><div class="row l"><button class="sm" data-a="vrx" data-i="${x.id}">View</button><button class="sm ghost" data-a="erx" data-i="${x.id}">Edit</button><button class="sm ghost dg" data-a="drx" data-i="${x.id}">Delete</button></div></div>`).join(''):`<div class="empty">Upload a photo or PDF of a prescription to keep it with the right person.</div>`)}
+function vPpl(){return `<div class="bar-h"><h2 style="margin:0">Family members</h2><button class="sm" data-a="addp">Add</button></div>`+S.people.map(p=>`<div class="card"><div class="top"><div>${chip(p.id)}<div class="mut">${esc(p.rel||'')} ${S.meds.filter(m=>m.person==p.id).length} medicines</div></div><div class="row" style="margin:0"><button class="sm ghost" data-a="ep" data-i="${p.id}">Rename</button>${S.people.length>1?`<button class="sm ghost dg" data-a="dp" data-i="${p.id}">Delete</button>`:''}</div></div></div>`).join('')+`<div class="card"><h2>Backup and restore</h2><div class="mut">JSON keeps everything, including prescription files. Excel keeps people, medicines and expenses.</div><div class="row l"><button class="sm" data-a="bjson">Backup JSON</button><button class="sm" data-a="bxls">Backup Excel</button><button class="sm ghost" data-a="rest">Restore</button></div></div><p class="mut">Data is stored privately in this browser. Back up regularly: clearing site data erases it.</p>`}
+
+function render(){
+$('#who').innerHTML=`<option value="all">Everyone</option>`+S.people.map(p=>`<option value="${p.id}"${who==p.id?' selected':''}>${esc(p.name)}</option>`).join('');
+$('#nav').innerHTML=TABS.map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+$('#v').innerHTML={today:vToday,meds:vMeds,fc:vFc,exp:vExp,rx:vRx,ppl:vPpl}[tab]()}
+async function refresh(){await load();render();due()}
+const find=(k,i)=>S[k].find(x=>x.id==i);
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+if(b.dataset.t){tab=b.dataset.t;render();scrollTo(0,0);return}
+const a=b.dataset.a,i=b.dataset.i;if(!a)return;
+({take:()=>take(find('meds',i),b.dataset.s),fin:()=>finish(find('meds',i)),redo:()=>restart(find('meds',i)),bjson:exportJSON,bxls:exportXLS,rest:()=>$('#rf').click(),refill:()=>refill(find('meds',i)),edit:()=>medForm(find('meds',i)),
+dmed:()=>{const m=find('meds',i);confirmDel(m.name,()=>del('meds',m.id))},addmed:()=>medForm(),print:()=>print(),alerts,
+addexp:expForm,eexp:()=>expForm(find('exp',i)),dexp:()=>confirmDel('this expense',()=>del('exp',+i)),addrx:rxForm,erx:()=>rxForm(find('rx',i)),vrx:()=>viewRx(find('rx',i)),
+drx:()=>confirmDel('this prescription',()=>del('rx',+i)),addp:()=>pplForm(),ep:()=>pplForm(find('people',i)),
+dp:()=>{const p=find('people',i);confirmDel(p.name+' and their records',async()=>{for(const k of['meds','exp','rx'])for(const x of S[k].filter(x=>x.person==p.id))await del(k,x.id);await del('people',p.id);if(who==p.id)who='all'})}}[a]||(()=>{}))()});
+$('#who').onchange=e=>{who=e.target.value;render()};
+document.addEventListener('change',e=>{if(e.target.id==='fc'){fc=+e.target.value;render()}});
+document.addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;render();const i=$('#q');i.focus();i.setSelectionRange(i.value.length,i.value.length)}});
+$('#rf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)restore(f)};
+(async()=>{try{db=await open();await load();if(!S.people.length){await put('people',{name:'Me',rel:'Self'});await load()}
+for(const m of S.meds)if(!m.sd){m.sd=Date.now();await put('meds',m)}
+render();notify();due()}
+catch(err){$('#v').innerHTML='<div class="empty">Storage is unavailable in this browser, so MedBox cannot save data.</div>'}})();
+</script>
+</body>
+</html>

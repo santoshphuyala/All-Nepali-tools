@@ -6,9 +6,9 @@
 <title>Nepali Utility Tools – Dashboard</title>
 <script>try{var t=localStorage.getItem('np-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
-:root{--bg:#f7f6f2;--fg:#1d1d1b;--card:#fff;--bd:#d9d6cc;--ac:#b3261e;--mut:#6b685f;--lang:#b3261e;--money:#0f766e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--lang:#ff8a80;--money:#2dd4bf}}
-:root[data-theme="dark"]{--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--lang:#ff8a80;--money:#2dd4bf}
+:root{--bg:#f7f6f2;--fg:#1d1d1b;--card:#fff;--bd:#d9d6cc;--ac:#b3261e;--mut:#6b685f;--lang:#b3261e;--money:#0f766e;--health:#5b4bd1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--lang:#ff8a80;--money:#2dd4bf;--health:#a99bff}}
+:root[data-theme="dark"]{--bg:#171716;--fg:#ecebe6;--card:#22221f;--bd:#3a3935;--ac:#ff8a80;--mut:#9d9a90;--lang:#ff8a80;--money:#2dd4bf;--health:#a99bff}
 html{scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light dark}
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark}
@@ -57,6 +57,7 @@ h1{margin:0;line-height:1.15}
 .card{position:relative;background:var(--card);border:1px solid var(--bd);border-radius:14px;transition:border-color .15s,transform .15s,box-shadow .15s}
 .card[data-cat="Language"]{--c:var(--lang)}
 .card[data-cat="Money"]{--c:var(--money)}
+.card[data-cat="Health"]{--c:var(--health)}
 .card:hover,.card:focus-within{border-color:var(--c);transform:translateY(-2px);box-shadow:0 8px 20px -14px var(--c)}
 a.open{display:flex;gap:14px;align-items:flex-start;padding:16px 56px 16px 16px;color:inherit;text-decoration:none;border-radius:14px;height:100%}
 a.open:focus-visible{outline-color:var(--c)}
@@ -122,7 +123,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem;padding:26px 0 10px}
 <script>
 /* To add a new tool: upload its .html file beside this one, then add one object to TOOLS.
    cat must be one of the names in CATS (add a new group there and a --c colour rule in the CSS if needed). */
-const CATS=['Language','Money'];
+const CATS=['Language','Money','Health'];
 const TOOLS=[
  {id:'font',title:'Nepali Font Converter',cat:'Language',icon:'अ',href:'Nepali_Font_Converter_v4.html',
   desc:'Preeti, Kantipur, Fantasy Himali, Sagarmatha and Kanchan to Unicode and back, keeping layout and formatting.',
@@ -132,7 +133,16 @@ const TOOLS=[
   feat:['English','नेपाली','Preeti'],tags:'rupees words cheque amount number lakh crore paisa'},
  {id:'trip',title:'Trip Expense Splitter',cat:'Money',icon:'🧳',href:'Trip_Expense_Splitter.html',
   desc:'Share trip costs between friends, in several currencies, and see who pays whom.',
-  feat:['Multi-currency','PDF summary','Excel backup'],tags:'trip expense splitter friends share bill settle currency travel split'}
+  feat:['Multi-currency','PDF summary','Excel backup'],tags:'trip expense splitter friends share bill settle currency travel split'},
+ {id:'kharcha',title:'Kharcha Tracker',cat:'Money',icon:'💰',href:'Kharcha_Tracker.html',
+  desc:'Track income, expenses and loans with BS and AD dates, plus a shopping list, wishlist and monthly budget.',
+  feat:['BS / AD dates','Loans','Budget','Backup'],tags:'kharcha spending expense income tracker bs ad nepali date loan budget shopping wishlist'},
+ {id:'bills',title:'Bills & Renewals Tracker',cat:'Money',icon:'🔔',href:'Bills_Renewals_Tracker.html',
+  desc:'Never miss a bill: reminders for subscriptions, insurance, internet and utilities, plus an expense log.',
+  feat:['Due alerts','Repeating bills','Expenses','Backup'],tags:'bills subscription insurance renewal reminder netflix internet electricity utilities due'},
+ {id:'medbox',title:'MedBox',cat:'Health',icon:'💊',href:'MedBox.html',
+  desc:'Family medicine tracker: daily doses, stock forecast, refills, expenses and prescriptions.',
+  feat:['Dose times','Stock forecast','Prescriptions','Family'],tags:'medicine medbox tablets dose stock refill prescription family health pharmacy'}
 ];
 
 const $=id=>document.getElementById(id);

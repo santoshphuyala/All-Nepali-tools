@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<script>try{var t=localStorage.getItem("np-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kharcha Tracker – खर्च ट्रयाकर</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3f6f5;--card:#fff;--tx:#17222b;--mu:#667583;--pr:#0b7a5a;--in:#0b7a5a;--ex:#d03f3f;--ln:#e2e8ec;--ac:#e5f4ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0e1417;--card:#192227;--tx:#e8eef2;--mu:#93a1ad;--pr:#3ec99b;--in:#3ec99b;--ex:#ff7b7b;--ln:#29343c;--ac:#163229}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0e1417;--card:#192227;--tx:#e8eef2;--mu:#93a1ad;--pr:#3ec99b;--in:#3ec99b;--ex:#ff7b7b;--ln:#29343c;--ac:#163229}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:84px}
+header{padding:14px 16px 4px}header h1{margin:0;font-size:20px;color:var(--pr)}header small{color:var(--mu)}
+main{padding:8px 12px;max-width:720px;margin:auto}
+small{color:var(--mu);display:block;font-size:12px}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin:8px 0}
+.g3,.g2,.two{display:grid;gap:8px}.g3{grid-template-columns:repeat(3,1fr)}.g2,.two{grid-template-columns:1fr 1fr}
+.g3 .c,.g2 .c{margin:0}.g3 b,.g2 b{font-size:14px;display:block;overflow-wrap:anywhere}
+.in{color:var(--in)}.ex{color:var(--ex)}
+.seg{display:flex;background:var(--card);border:1px solid var(--ln);border-radius:10px;overflow:hidden;margin:8px 0}
+.seg button{flex:1;border:0;background:none;color:var(--tx);padding:9px 0;font-size:14px}
+.seg .on{background:var(--pr);color:#fff}
+.nv{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
+.nv button{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;width:40px;height:34px;font-size:18px}
+.nv b{text-align:center;flex:1}
+.it{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--ln)}
+.it:last-child{border:0}.it>div:first-child{min-width:0}
+.bar{height:6px;background:var(--ln);border-radius:4px;margin:3px 0 8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pr)}
+.b{border:0;background:var(--pr);color:#fff;border-radius:10px;padding:10px 14px;font-size:15px}
+.b.s{background:var(--card);color:var(--tx);border:1px solid var(--ln)}.b.d{background:var(--ex)}.w{width:100%;margin:6px 0}
+input,select{width:100%;padding:10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx);font-size:16px;margin-top:3px}
+button,input,select{font-family:inherit}
+input[type=checkbox]{width:auto;margin:0 8px 0 0;transform:scale(1.3)}
+label{display:block;margin:8px 0;font-size:13px;color:var(--mu)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;background:none;color:var(--mu);padding:9px 0 7px;font-size:11px}nav button span{display:block;font-size:19px}nav .on{color:var(--pr);font-weight:600}
+.fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;border:0;background:var(--pr);color:#fff;font-size:30px;box-shadow:0 3px 10px #0005}
+#md{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;z-index:9}
+.sh{background:var(--card);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh h3{margin:0 0 4px}.btns{display:flex;gap:8px;margin-top:12px}.btns .b{flex:1}
+#tt{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:#222;color:#fff;padding:8px 14px;border-radius:20px;display:none;z-index:10}
+.ck{display:flex;gap:10px;align-items:center}.ck input{margin:0}
+.done b{text-decoration:line-through;color:var(--mu)}
+.pill{font-size:11px;padding:1px 7px;border-radius:9px;background:var(--ac);color:var(--pr)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.chip{border:1px solid var(--ln);background:var(--ac);color:var(--pr);border-radius:16px;padding:6px 12px;white-space:nowrap;font-size:13px}
+@media(min-width:760px){#md{align-items:center}.sh{border-radius:16px}}
+@media(min-width:900px){body{padding:0 0 0 200px}header{position:fixed;top:0;left:0;width:200px;z-index:2;background:var(--card)}nav{top:0;right:auto;width:200px;flex-direction:column;justify-content:flex-start;padding-top:80px;border-top:0;border-right:1px solid var(--ln)}nav button{display:flex;gap:10px;align-items:center;text-align:left;padding:13px 18px;font-size:14px}nav button span{display:inline;font-size:18px}main{max-width:860px;padding:16px 24px}.fab{right:28px;bottom:28px}#tt{bottom:30px}}
+.bk{display:block;font-size:12px;color:var(--pr);text-decoration:none;margin-bottom:2px}.bk:hover{text-decoration:underline}
+@media(min-width:900px){nav{padding-top:104px}}
+</style></head><body>
+<header><a class="bk" href="index.html">← All tools</a><h1>💰 Kharcha Tracker <span style="font-weight:400">· खर्च</span></h1><small>Developed by Santosh</small></header>
+<main id="v"></main>
+<button class="fab" id="fab" onclick="txForm()" title="New transaction (N)">+</button>
+<nav><button data-t="home" onclick="go('home')"><span>📊</span>Summary</button><button data-t="tx" onclick="go('tx')"><span>🧾</span>Transactions</button><button data-t="shop" onclick="go('shop')"><span>🛒</span>Shopping</button><button data-t="wish" onclick="go('wish')"><span>⭐</span>Wishlist</button><button data-t="more" onclick="go('more')"><span>⚙️</span>More</button></nav>
+<div id="md" onclick="if(event.target===this)closeM()"></div><div id="tt"></div>
+<input type="file" id="fi" hidden>
+<script>
+// ---------- BS calendar (supported: 2078–2086 BS = Apr 2021 – Apr 2031 AD) ----------
+const BSD={2078:[31,31,31,32,31,31,29,30,30,29,30,30],2079:[31,31,32,31,31,31,30,29,30,29,30,30],2080:[31,32,31,32,31,30,30,30,29,29,30,30],2081:[31,31,32,32,31,30,30,30,29,30,30,30],2082:[30,32,31,32,31,30,30,30,29,30,30,30],2083:[31,31,32,31,31,30,30,30,29,30,30,30],2084:[31,31,32,31,31,30,30,30,29,30,30,30],2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,30,29,30,30,30]};
+const MN=['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+const NM=['बैशाख','जेठ','असार','श्रावण','भदौ','असोज','कार्तिक','मंसिर','पौष','माघ','फाल्गुन','चैत्र'];
+const DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],DAY=864e5,BASE=Date.UTC(2021,3,14);
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'Rs '+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const iso=d=>d.toISOString().slice(0,10),addD=(s,n)=>iso(new Date(Date.parse(s)+n*DAY));
+const today=()=>{const d=new Date();return iso(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())))};
+const ylen=y=>BSD[y].reduce((a,b)=>a+b,0),dow=s=>new Date(Date.parse(s)).getUTCDay();
+function bs2ad(y,m,d){let n=0;for(let i=2078;i<y;i++)n+=ylen(i);for(let i=0;i<m-1;i++)n+=BSD[y][i];return addD('2021-04-14',n+d-1)}
+function ad2bs(s){let n=Math.round((Date.parse(s)-BASE)/DAY);if(!(n>=0))return null;for(let y=2078;y<=2086;y++){const L=ylen(y);if(n<L){let m=0;while(n>=BSD[y][m])n-=BSD[y][m++];return{y,m:m+1,d:n+1}}n-=L}return null}
+const p2=n=>String(n).padStart(2,'0');
+const bsStr=s=>{const b=ad2bs(s);return b?`${b.y}-${p2(b.m)}-${p2(b.d)}`:''};
+const bsFmt=s=>{const b=ad2bs(s);return b?`${b.d} ${MN[b.m-1]} ${b.y}`:s};
+const parseBs=t=>{const m=/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/.exec((t||'').trim());if(!m)return null;const y=+m[1],mo=+m[2],d=+m[3];if(!BSD[y]||mo<1||mo>12||d<1||d>BSD[y][mo-1])return null;return bs2ad(y,mo,d)};
+// ---------- IndexedDB ----------
+let db;
+const open=()=>new Promise((res,rej)=>{const r=indexedDB.open('kharcha',1);r.onupgradeneeded=()=>{const d=r.result,t=d.createObjectStore('tx',{keyPath:'id',autoIncrement:true});t.createIndex('date','date');t.createIndex('type','type');t.createIndex('cat','cat');d.createObjectStore('shop',{keyPath:'id',autoIncrement:true}).createIndex('done','done');d.createObjectStore('wish',{keyPath:'id',autoIncrement:true}).createIndex('prio','prio');d.createObjectStore('meta',{keyPath:'k'})};r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)});
+const rq=r=>new Promise((s,j)=>{r.onsuccess=()=>s(r.result);r.onerror=()=>j(r.error)});
+const S=(n,m='readonly')=>db.transaction(n,m).objectStore(n);
+const all=n=>rq(S(n).getAll()),put=(n,o)=>rq(S(n,'readwrite').put(o)),del=(n,id)=>rq(S(n,'readwrite').delete(id));
+let D={tx:[],shop:[],wish:[],meta:{}},tab='home',P={mode:'month',ref:today()},F={q:'',t:''};
+async function load(){D.tx=await all('tx');D.shop=await all('shop');D.wish=await all('wish');D.meta={};(await all('meta')).forEach(x=>D.meta[x.k]=x.v)}
+const TY={expense:'Expense',income:'Income',loan_given:'Loan given (lent)',loan_taken:'Loan taken (borrowed)'};
+const CATS={expense:['Food','Groceries','Transport','Fuel','Rent','Bills & Utilities','Mobile & Internet','Health','Education','Shopping','Entertainment','Social & Gifts','Other'],income:['Salary','Business','Interest','Gift','Other'],loan_given:['Loan given'],loan_taken:['Loan taken']};
+const isLoan=t=>t.startsWith('loan');
+// ---------- UI helpers ----------
+function toast(m){const t=$('#tt');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200)}
+const modal=h=>{$('#md').innerHTML='<div class="sh">'+h+'</div>';$('#md').style.display='flex'};
+const closeM=()=>{$('#md').style.display='none';render()};
+let AK;const ask=(m,f)=>{AK=f;modal(`<h3>Please confirm</h3><p>${m}</p><div class="btns"><button class="b s" onclick="closeM()">Cancel</button><button class="b d" onclick="AK()">Yes</button></div>`)};
+const dateFields=d=>`<div class="two"><label>Date (AD)<input id="dA" type="date" value="${d}" oninput="$('#dB').value=bsStr(this.value)"></label><label>Date (BS)<input id="dB" placeholder="2083-08-07" value="${bsStr(d)}" oninput="const a=parseBs(this.value);if(a)$('#dA').value=a"></label></div>`;
+// ---------- period / summary (BS) ----------
+function range(){const b=ad2bs(P.ref)||ad2bs(today());if(P.mode==='day')return[P.ref,P.ref];if(P.mode==='week'){const s=addD(P.ref,-dow(P.ref));return[s,addD(s,6)]}
+if(P.mode==='month')return[bs2ad(b.y,b.m,1),bs2ad(b.y,b.m,BSD[b.y][b.m-1])];return[bs2ad(b.y,1,1),bs2ad(b.y,12,BSD[b.y][11])]}
+function label(){const[a,z]=range(),b=ad2bs(P.ref)||{y:'',m:1};if(P.mode==='day')return bsFmt(P.ref)+' · '+DN[dow(P.ref)];if(P.mode==='week')return bsFmt(a)+' – '+bsFmt(z);if(P.mode==='month')return`${MN[b.m-1]} (${NM[b.m-1]}) ${b.y}`;return b.y+' BS'}
+function nav_(k){const b=ad2bs(P.ref);let r=null;if(P.mode==='day')r=addD(P.ref,k);else if(P.mode==='week')r=addD(P.ref,7*k);else if(P.mode==='month'){let m=b.m+k,y=b.y;if(m<1){m=12;y--}if(m>12){m=1;y++}if(BSD[y])r=bs2ad(y,m,1)}else if(BSD[b.y+k])r=bs2ad(b.y+k,1,1);if(r&&ad2bs(r)){P.ref=r;render()}else toast('Outside supported BS range 2078–2086')}
+function sum(a,z){const r={in:0,ex:0,cats:{},list:[]};D.tx.forEach(t=>{if(t.date<a||t.date>z)return;r.list.push(t);const v=+t.amount||0;if(t.type==='income')r.in+=v;else if(t.type==='expense'){r.ex+=v;r.cats[t.cat]=(r.cats[t.cat]||0)+v}});return r}
+const row=t=>{const p=t.type==='income'||t.type==='loan_taken';return`<div class="it" onclick="txForm(${t.id})"><div><b>${esc(t.cat)}${t.party?' · '+esc(t.party):''}</b><small>${bsFmt(t.date)} (${t.date})${t.note?' · '+esc(t.note):''}${isLoan(t.type)?(t.settled?' · settled':' · pending'):''}</small></div><b class="${p?'in':'ex'}">${p?'+':'−'}${money(t.amount)}</b></div>`};
+const byDate=l=>l.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+function home(){const[a,z]=range(),s=sum(a,z),L={g:0,t:0};D.tx.forEach(t=>{if(isLoan(t.type)&&!t.settled)L[t.type==='loan_given'?'g':'t']+=+t.amount||0});const bud=+D.meta.budget||0;
+let h=qbar()+`<div class="seg">${[['day','Daily'],['week','Weekly'],['month','Monthly'],['year','Yearly']].map(([m,n])=>`<button class="${P.mode===m?'on':''}" onclick="P.mode='${m}';render()">${n}</button>`).join('')}</div>
+<div class="nv"><button onclick="nav_(-1)">‹</button><b onclick="P.ref=today();render()">${label()}<small>tap for today · ${a} → ${z} AD</small></b><button onclick="nav_(1)">›</button></div>
+<div class="g3"><div class="c"><small>Income</small><b class="in">${money(s.in)}</b></div><div class="c"><small>Expense</small><b class="ex">${money(s.ex)}</b></div><div class="c"><small>Balance</small><b>${money(s.in-s.ex)}</b></div></div>`;
+if(P.mode==='month'&&bud){const p=s.ex/bud*100;h+=`<div class="c"><small>Monthly budget ${money(bud)} · ${p.toFixed(0)}% used</small><div class="bar"><i style="width:${Math.min(p,100)}%;background:${p>100?'var(--ex)':'var(--pr)'}"></i></div><small>${bud>=s.ex?money(bud-s.ex)+' left':'Over by '+money(s.ex-bud)}</small></div>`}
+h+=`<div class="g2" style="margin-top:8px"><div class="c"><small>Loans to receive</small><b class="in">${money(L.g)}</b></div><div class="c"><small>Loans to pay</small><b class="ex">${money(L.t)}</b></div></div>`;
+const cs=Object.entries(s.cats).sort((x,y)=>y[1]-x[1]);
+if(cs.length)h+=`<div class="c"><b>Spending by category</b>${cs.map(([k,v])=>`<div style="margin-top:6px"><div class="it" style="padding:0;border:0"><span>${esc(k)}</span><span>${money(v)} · ${(v/s.ex*100).toFixed(0)}%</span></div><div class="bar"><i style="width:${v/s.ex*100}%"></i></div></div>`).join('')}</div>`;
+h+=`<div class="c"><b>Transactions (${s.list.length})</b>${s.list.length?byDate(s.list).map(row).join(''):'<small>No transactions in this period.</small>'}</div>`;return h}
+// ---------- transactions ----------
+const txList=()=>{const q=F.q.toLowerCase(),l=byDate(D.tx.filter(t=>(!F.t||t.type===F.t)&&(!q||[t.cat,t.note,t.party,bsStr(t.date),t.date,t.amount].join(' ').toLowerCase().includes(q))));return l.length?l.map(row).join(''):'<small>Nothing found.</small>'};
+const txTab=()=>qbar()+`<div class="two"><input placeholder="Search…" value="${esc(F.q)}" oninput="F.q=this.value;$('#tl').innerHTML=txList()"><select onchange="F.t=this.value;$('#tl').innerHTML=txList()"><option value="">All types</option>${Object.entries(TY).map(([k,v])=>`<option value="${k}" ${F.t===k?'selected':''}>${v}</option>`).join('')}</select></div><div class="c" id="tl">${txList()}</div>`;
+function tyCh(cur){const t=$('#ft').value,u=[...new Set([...CATS[t],...D.tx.filter(x=>x.type===t).map(x=>x.cat)])],L=cur&&!u.includes(cur)?[cur,...u]:u;$('#fc').innerHTML=L.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('')+'<option value="__c">➕ New category…</option>';$('#fcx').style.display='none';$('#fpl').style.display=$('#fsl').style.display=isLoan(t)?'':'none'}
+function txForm(id,pre){const o=id&&D.tx.find(x=>x.id===id),t=o||{type:'expense',date:today(),cat:'',amount:'',note:'',party:'',settled:false,...pre};
+modal(`<h3>${o?'Edit':'Add'} transaction</h3><label>Type<select id="ft" onchange="tyCh()">${Object.entries(TY).map(([k,v])=>`<option value="${k}" ${t.type===k?'selected':''}>${v}</option>`).join('')}</select></label>
+<label>Amount (Rs)<input id="fa" type="number" inputmode="decimal" step="any" value="${t.amount}"></label><label>Category<select id="fc" onchange="$('#fcx').style.display=this.value==='__c'?'':'none';if(this.value==='__c')$('#fcx').focus()"></select><input id="fcx" placeholder="New category name" style="display:none"></label>
+<label id="fpl">Person / party<input id="fp" value="${esc(t.party)}"></label>${dateFields(t.date)}<label>Note<input id="fn" value="${esc(t.note)}"></label>
+<label id="fsl" class="ck"><input type="checkbox" id="fs" ${t.settled?'checked':''}>Settled / repaid</label>
+<div class="btns"><button class="b s" onclick="closeM()">Cancel</button>${o?`<button class="b d" onclick="ask('Delete this transaction?',()=>rm('tx',${id}))">Delete</button>`:''}${o?`<button class="b s" onclick="dup(${id})">Copy</button>`:`<button class="b s" onclick="saveTx(0,1)">Save+new</button>`}<button class="b p" onclick="saveTx(${id||0})">Save</button></div>`);tyCh(t.cat);if(!o)setTimeout(()=>$('#fa').focus(),50)}
+const dup=id=>{const o=D.tx.find(x=>x.id===id);txForm(0,{type:o.type,cat:o.cat,amount:o.amount,note:o.note,party:o.party})};
+async function saveTx(id,again){const date=$('#dA').value,amt=+$('#fa').value;if(!date||!(amt>0))return toast('Enter a valid amount and date');const type=$('#ft').value,o={type,amount:amt,cat:$('#fc').value==='__c'?($('#fcx').value.trim()||'Other'):$('#fc').value,date,note:$('#fn').value.trim(),party:isLoan(type)?$('#fp').value.trim():'',settled:isLoan(type)&&$('#fs').checked};if(id)o.id=id;await put('tx',o);await load();if(again){toast('Saved');txForm(0,{type,date,cat:o.cat,party:o.party})}else closeM()}
+async function rm(n,id){await del(n,id);await load();closeM()}
+// ---------- quick entry ----------
+const KW=[['Food',/food|momo|chiya|tea|coffee|lunch|dinner|breakfast|khana|snack|khaja|pizza|chowmein/],['Groceries',/grocer|tarkari|vegetable|fruit|rice|dal|milk|egg|meat/],['Transport',/bus|taxi|micro|ride|pathao|tempo|fare|ticket/],['Fuel',/petrol|fuel|diesel/],['Bills & Utilities',/electric|nea|water|bill|wifi|tax/],['Mobile & Internet',/recharge|ntc|ncell|data|internet/],['Health',/medic|doctor|hospital|pharma|dawai/],['Rent',/rent/],['Shopping',/shop|cloth|shoe|mall/]];
+function qbar(){const f={};D.tx.forEach(t=>t.type==='expense'&&(f[t.cat]=(f[t.cat]||0)+1));const cs=[...new Set([...Object.keys(f).sort((a,b)=>f[b]-f[a]),'Food','Transport','Groceries','Bills & Utilities','Shopping'])].slice(0,6);
+return`<div class="c"><div style="display:flex;gap:8px"><input id="qi" placeholder="Quick add: momo 150 · +salary 50000 · taxi 80 yesterday" onkeydown="if(event.key==='Enter')quick()"><button class="b" onclick="quick()">Add</button></div><div class="chips">${cs.map(c=>`<button class="chip" data-c="${esc(c)}" onclick="txForm(0,{cat:this.dataset.c})">${esc(c)}</button>`).join('')}</div></div>`}
+async function quick(){const s=$('#qi').value.trim(),m=s.match(/\d+(?:\.\d+)?/);if(!m)return toast('Type a note and amount, e.g. momo 150');
+const inc=/^\+|\b(salary|income|received|bonus|interest|sales?)\b/i.test(s),y=/\b(yesterday|hijo)\b/i.test(s),note=s.replace(m[0],'').replace(/\b(yesterday|hijo)\b/ig,'').replace(/^\+/,'').trim(),k=note.toLowerCase(),type=inc?'income':'expense',
+cat=inc?(/interest/.test(k)?'Interest':/business|sale/.test(k)?'Business':/salary/.test(k)?'Salary':'Other'):((KW.find(([,r])=>r.test(k))||[])[0]||'Other'),date=y?addD(today(),-1):today();
+await put('tx',{type,amount:+m[0],cat,date,note,party:'',settled:false});await load();render();toast(`${inc?'Income':'Expense'} ${money(m[0])} · ${cat} · ${bsFmt(date)}`)}
+// ---------- shopping ----------
+function shop(){const p=D.shop.filter(x=>!x.done),d=D.shop.filter(x=>x.done),est=p.reduce((a,x)=>a+(+x.price||0)*(+x.qty||1),0),sp=d.reduce((a,x)=>a+(+x.actual||0),0);
+const it=x=>`<div class="it ${x.done?'done':''}"><div class="ck" style="flex:1"><input type="checkbox" ${x.done?'checked':''} onchange="tgShop(${x.id},this.checked)"><div style="flex:1" onclick="shopForm(${x.id})"><b>${esc(x.name)}</b><small>${x.qty||1} × ${money(x.price)}${x.done?' · paid '+money(x.actual):''}</small></div></div></div>`;
+return`<div class="g2"><div class="c"><small>Estimated budget (pending)</small><b>${money(est)}</b></div><div class="c"><small>Spent on completed</small><b class="ex">${money(sp)}</b></div></div><button class="b w" onclick="shopForm()">+ Add shopping item</button>
+<div class="c"><b>To buy (${p.length})</b>${p.map(it).join('')||'<small>Nothing pending.</small>'}</div>${d.length?`<div class="c"><b>Completed (${d.length})</b>${d.map(it).join('')}</div>`:''}`}
+function shopForm(id){const o=id&&D.shop.find(x=>x.id===id),s=o||{name:'',qty:1,price:''};modal(`<h3>${o?'Edit':'Add'} item</h3><label>Item<input id="sn" value="${esc(s.name)}"></label><div class="two"><label>Quantity<input id="sq" type="number" step="any" value="${s.qty}"></label><label>Estimated price (each)<input id="sp" type="number" step="any" value="${s.price}"></label></div>
+<div class="btns"><button class="b s" onclick="closeM()">Cancel</button>${o?`<button class="b d" onclick="ask('Delete this item?',()=>rm('shop',${id}))">Delete</button>`:''}<button class="b p" onclick="saveShop(${id||0})">Save</button></div>`)}
+async function saveShop(id){const name=$('#sn').value.trim();if(!name)return toast('Enter item name');const o=id?D.shop.find(x=>x.id===id):{done:0};Object.assign(o,{name,qty:+$('#sq').value||1,price:+$('#sp').value||0});await put('shop',o);await load();closeM()}
+function tgShop(id,c){const s=D.shop.find(x=>x.id===id);if(c)modal(`<h3>Mark purchased</h3><p>${esc(s.name)}</p><label>Actual price paid, total (optional – leave empty to use estimate ${money((+s.price||0)*(+s.qty||1))})<input id="ap" type="number" step="any" inputmode="decimal"></label><div class="btns"><button class="b s" onclick="closeM()">Cancel</button><button class="b p" onclick="doneShop(${id})">Done &amp; add expense</button></div>`);else undoShop(s)}
+async function doneShop(id){const s=D.shop.find(x=>x.id===id),v=$('#ap').value,amt=v===''?(+s.price||0)*(+s.qty||1):+v;s.done=1;s.actual=amt;s.tid=null;if(amt>0)s.tid=await put('tx',{type:'expense',amount:amt,cat:'Shopping',date:today(),note:s.name,party:'',settled:false});await put('shop',s);await load();closeM();toast(amt>0?'Added to expenses':'Marked done')}
+async function undoShop(s){if(s.tid)await del('tx',s.tid);s.done=0;s.tid=null;s.actual=0;await put('shop',s);await load();render()}
+// ---------- wishlist ----------
+function wish(){const t=D.wish.reduce((a,x)=>a+(+x.price||0),0),o={High:0,Medium:1,Low:2};return`<div class="c"><small>Total wishlist value</small><b>${money(t)}</b></div><button class="b w" onclick="wishForm()">+ Add wish</button><div class="c">${D.wish.slice().sort((a,b)=>(o[a.prio]??1)-(o[b.prio]??1)).map(x=>`<div class="it"><div onclick="wishForm(${x.id})" style="flex:1"><b>${esc(x.name)}</b> <span class="pill">${x.prio}</span><small>${money(x.price)}${x.note?' · '+esc(x.note):''}</small></div><button class="b s" onclick="mvWish(${x.id})">🛒</button></div>`).join('')||'<small>No wishes yet.</small>'}</div><small>🛒 moves a wish to the shopping list.</small>`}
+function wishForm(id){const o=id&&D.wish.find(x=>x.id===id),w=o||{name:'',price:'',prio:'Medium',note:''};modal(`<h3>${o?'Edit':'Add'} wish</h3><label>Item<input id="wn" value="${esc(w.name)}"></label><div class="two"><label>Price (Rs)<input id="wp" type="number" step="any" value="${w.price}"></label><label>Priority<select id="wr">${['High','Medium','Low'].map(p=>`<option ${w.prio===p?'selected':''}>${p}</option>`).join('')}</select></label></div><label>Note / link<input id="wt" value="${esc(w.note)}"></label>
+<div class="btns"><button class="b s" onclick="closeM()">Cancel</button>${o?`<button class="b d" onclick="ask('Delete this wish?',()=>rm('wish',${id}))">Delete</button>`:''}<button class="b p" onclick="saveWish(${id||0})">Save</button></div>`)}
+async function saveWish(id){const name=$('#wn').value.trim();if(!name)return toast('Enter item name');const o=id?D.wish.find(x=>x.id===id):{};Object.assign(o,{name,price:+$('#wp').value||0,prio:$('#wr').value,note:$('#wt').value.trim()});await put('wish',o);await load();closeM()}
+async function mvWish(id){const w=D.wish.find(x=>x.id===id);await put('shop',{name:w.name,qty:1,price:w.price,done:0});await del('wish',id);await load();render();toast('Moved to shopping list')}
+// ---------- backup / restore ----------
+async function save(fn,data){try{const d=window.claude&&await claude.use('downloads');if(!d)throw 0;await d.save({filename:fn,data})}catch(e){if(e&&e.code==='declined')return;const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000)}
+await put('meta',{k:'lastBackup',v:today()});await load();toast('Backup saved');if(tab==='more')render()}
+const metaArr=()=>Object.entries(D.meta).map(([k,v])=>({k,v}));
+const expJson=()=>save(`kharcha-backup-${today()}.json`,new Blob([JSON.stringify({app:'kharcha',v:1,at:new Date().toISOString(),tx:D.tx,shop:D.shop,wish:D.wish,meta:metaArr()},null,1)],{type:'application/json'}));
+function expXl(){if(typeof XLSX==='undefined')return toast('Excel library not loaded – check internet');const wb=XLSX.utils.book_new(),A=(n,r)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r),n);
+A('Transactions',D.tx.map(t=>({id:t.id,type:t.type,date_ad:t.date,date_bs:bsStr(t.date),category:t.cat,amount:t.amount,party:t.party,note:t.note,settled:t.settled?1:0})));
+A('Shopping',D.shop.map(s=>({id:s.id,name:s.name,qty:s.qty,est_price:s.price,done:s.done?1:0,actual:s.actual||0,tid:s.tid||''})));
+A('Wishlist',D.wish.map(w=>({id:w.id,name:w.name,price:w.price,priority:w.prio,note:w.note})));
+A('Settings',metaArr().map(m=>({key:m.k,value:m.v})));save(`kharcha-backup-${today()}.xlsx`,new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'}))}
+const nd=v=>{if(typeof v==='number')return iso(new Date(Date.UTC(1899,11,30)+Math.round(v)*DAY));v=String(v??'').trim();return/^\d{4}-\d\d-\d\d$/.test(v)?v:(parseBs(v)||'')};
+function clean(o){if(!o||!Array.isArray(o.tx))throw 0;const A=x=>(Array.isArray(x)?x:[]).filter(i=>i&&typeof i==='object'),I=i=>{const r={...i};if(Number.isInteger(+r.id)&&+r.id>0)r.id=+r.id;else delete r.id;return r};
+return{tx:A(o.tx).map(x=>({...I(x),date:nd(x.date)})).filter(x=>TY[x.type]&&x.date&&Number.isFinite(+x.amount)).map(x=>({...x,amount:+x.amount,cat:String(x.cat||'Other'),party:x.party||'',note:x.note||'',settled:!!x.settled})),shop:A(o.shop).map(I).filter(s=>s.name),wish:A(o.wish).map(I).filter(w=>w.name),meta:A(o.meta).filter(m=>typeof m.k==='string')}}
+async function restore(o){const N=['tx','shop','wish','meta'],tr=db.transaction(N,'readwrite'),done=new Promise((s,j)=>{tr.oncomplete=s;tr.onerror=()=>j(tr.error);tr.onabort=()=>j(tr.error||new Error('aborted'))});try{N.forEach(n=>tr.objectStore(n).clear());N.forEach(n=>(o[n]||[]).forEach(x=>tr.objectStore(n).put(x)))}catch(e){try{tr.abort()}catch(_){}}await done;await load();closeM();toast('Restore complete')}
+function xlObj(buf){const wb=XLSX.read(buf,{type:'array'}),R=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n]):[],I=r=>r.id?{id:+r.id}:{};
+return{tx:R('Transactions').map(r=>({...I(r),type:r.type,date:r.date_ad||parseBs(String(r.date_bs||'')),cat:r.category,amount:+r.amount||0,party:r.party||'',note:r.note||'',settled:!!+r.settled})),
+shop:R('Shopping').map(r=>({...I(r),name:r.name,qty:+r.qty||1,price:+r.est_price||0,done:+r.done?1:0,actual:+r.actual||0,tid:r.tid?+r.tid:null})),
+wish:R('Wishlist').map(r=>({...I(r),name:r.name,price:+r.price||0,prio:r.priority||'Medium',note:r.note||''})),meta:R('Settings').map(r=>({k:r.key,v:r.value}))}}
+function pick(kind){if(kind!=='json'&&typeof XLSX==='undefined')return toast('Excel library not loaded – check internet');const f=$('#fi');f.value='';f.accept=kind==='json'?'.json':'.xlsx,.xls';f.onchange=async()=>{const file=f.files[0];if(!file)return;try{const o=clean(kind==='json'?JSON.parse(await file.text()):xlObj(await file.arrayBuffer()));ask(`Replace ALL current data with this backup (${o.tx.length} transactions, ${(o.shop||[]).length} shopping, ${(o.wish||[]).length} wishlist)?`,()=>restore(o).catch(()=>toast('Restore failed')))}catch(e){toast('Invalid backup file')}};f.click()}
+// ---------- more ----------
+const more=()=>`<div class="c"><b>Monthly budget</b><div class="two"><input id="bg" type="number" placeholder="Rs per BS month" value="${D.meta.budget||''}"><button class="b" onclick="saveBudget()">Save budget</button></div></div>
+<div class="c"><b>Backup &amp; restore</b><small>Stored on this device (IndexedDB). Last backup: ${D.meta.lastBackup?bsFmt(D.meta.lastBackup)+' ('+D.meta.lastBackup+')':'never'}</small><div class="two" style="margin-top:8px"><button class="b" onclick="expJson()">Export JSON</button><button class="b" onclick="expXl()">Export Excel</button><button class="b s" onclick="pick('json')">Restore JSON</button><button class="b s" onclick="pick('xl')">Restore Excel</button></div></div>
+<div class="c"><b>Appearance</b><div class="two" style="margin-top:8px"><button class="b s" onclick="theme('light')">☀️ Light</button><button class="b s" onclick="theme('dark')">🌙 Dark</button></div></div>
+<div class="c"><b>Data</b><small>${D.tx.length} transactions · ${D.shop.length} shopping · ${D.wish.length} wishlist</small><button class="b d w" onclick="ask('Delete ALL data permanently?',()=>restore({}))">Erase all data</button></div>
+<div class="c"><b>Kharcha Tracker</b><small>BS calendar supported 2078–2086 (Apr 2021 – Apr 2031 AD). Developed by Santosh.</small></div>`;
+async function saveBudget(){await put('meta',{k:'budget',v:+$('#bg').value||0});await load();toast('Budget saved')}
+function theme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('kt',t)}catch(e){}}
+// ---------- shell ----------
+function render(){$('#v').innerHTML=({home,tx:txTab,shop,wish,more})[tab]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));$('#fab').style.display=tab==='home'||tab==='tx'?'':'none'}
+const go=t=>{tab=t;render();scrollTo(0,0)};
+try{const t=localStorage.getItem('kt');if(t)document.documentElement.dataset.theme=t}catch(e){}
+document.addEventListener('keydown',e=>{const m=$('#md'),o=m.style.display==='flex';if(e.key==='Escape'&&o)closeM();else if(e.key==='Enter'&&o&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox'){const b=m.querySelector('.btns .p');if(b){e.preventDefault();b.click()}}else if(!o&&e.key==='n'&&!e.ctrlKey&&!e.metaKey&&!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();txForm()}});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+open().then(load).then(render).catch(e=>$('#v').innerHTML='<div class="c">Database unavailable: '+esc(e)+'</div>');
+</script></body></html>
