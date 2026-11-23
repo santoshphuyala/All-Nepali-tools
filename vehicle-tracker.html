@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vehicle Paper Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14232e;--mut:#5b6b78;--line:#d5dde5;--pri:#0b5fa5;--ok:#1f7a4d;--warn:#b86e00;--bad:#c0322a;--okb:#e1f3e9;--warnb:#fff0d4;--badb:#fde4e1;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1a23;--card:#16262f;--ink:#e6eef4;--mut:#93a5b3;--line:#2a3d49;--pri:#5aa8ec;--ok:#5fd09a;--warn:#f0b04a;--bad:#ff8a80;--okb:#14382a;--warnb:#3d2f12;--badb:#442120;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{font:16px/1.4 Barlow,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top) 0 calc(64px + env(safe-area-inset-bottom))}
+header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+h1{font-size:19px;margin:0;font-weight:700}h2{font-size:16px;margin:18px 0 8px}h3{margin:0 0 10px}
+main{padding:12px 14px;max-width:760px;margin:auto}
+select,input,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px;width:100%}
+header select{width:auto;max-width:48%}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer}
+button.pri{background:var(--pri);border-color:var(--pri);color:#fff}button.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;padding:11px 12px;margin:0 0 10px}
+.card.ok{border-left-color:var(--ok)}.card.warn{border-left-color:var(--warn)}.card.bad{border-left-color:var(--bad)}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sub{color:var(--mut);font-size:14px;margin-top:3px;white-space:pre-line}
+.badge{font-size:13px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap;background:var(--line)}
+.badge.ok{background:var(--okb);color:var(--ok)}.badge.warn{background:var(--warnb);color:var(--warn)}.badge.bad{background:var(--badb);color:var(--bad)}
+.plate{border:2px solid var(--ink);border-radius:5px;padding:0 6px;font-weight:700;letter-spacing:.6px;font-size:14px}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.acts button{padding:5px 9px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{font-size:13px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--mut)}
+.chip.on{background:var(--okb);color:var(--ok);border-color:var(--ok)}
+.top{display:flex;gap:8px;margin-bottom:10px}.top button{white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}.stat b{font-size:22px;display:block}
+.empty{padding:18px;text-align:center;color:var(--mut);border:1px dashed var(--line);border-radius:10px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;border:0;border-radius:0;background:none;padding:12px 2px;font-size:13px;color:var(--mut)}nav button.on{color:var(--pri);box-shadow:inset 0 3px var(--pri)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);width:min(520px,94vw);max-height:92vh;padding:14px}
+dialog::backdrop{background:#0008}label{display:block;font-size:14px;color:var(--mut);margin-bottom:9px}label input,label select,label textarea{margin-top:3px;color:var(--ink)}
+.tk{display:flex;gap:8px;align-items:center;color:var(--ink);margin:3px 0}.tk input{width:auto}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;display:none;z-index:9;max-width:90vw}
+footer{text-align:center;color:var(--mut);font-size:13px;margin:22px 0 6px}
+details summary{cursor:pointer;font-weight:600;margin:14px 0 8px}
+.bk{display:inline-block;margin:0 0 8px;color:var(--pri);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+@media(max-width:560px){.stats{grid-template-columns:1fr 1fr}header{padding:10px}main{padding:10px}}
+</style></head><body>
+<a class="bk" href="index.html">← All tools</a>
+<header><h1>Vehicle Paper Tracker</h1><select id="fv" onchange="fv=this.value;render()"></select></header>
+<main id="m"></main><nav id="nav"></nav><dialog id="dlg"></dialog><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),dlg=$('#dlg');
+const KL={insurance:'Insurance',license:'Annual license (DoTM)'};
+const TABS=[['home','Home'],['ins','Insurance'],['lic','License'],['srv','Service'],['veh','Vehicles'],['data','Backup']];
+let S={vehicles:[],renewals:[],services:[],checklist:['Engine oil and filter','Air filter','Brake pads and fluid','Tyre pressure and rotation','Battery check','Coolant level','Chain / belt','Lights and indicators','Wiper and washer']};
+let tab='home',fv='';
+const C={veh:'vehicles',ren:'renewals',srv:'services'};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+const todayS=()=>fmt(new Date());
+const dl=d=>d?Math.round((new Date(d+'T00:00:00')-new Date(todayS()+'T00:00:00'))/864e5):null;
+const addY=(d,n=1)=>{const x=new Date(d+'T00:00:00');x.setFullYear(x.getFullYear()+n);return fmt(x)};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)};
+/* storage */
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('vehicle-tracker',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function load(){try{const d=await idb();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get('db');q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(e){return null}}
+async function save(){try{const d=await idb();d.transaction('kv','readwrite').objectStore('kv').put(JSON.parse(JSON.stringify(S)),'db')}catch(e){}}
+/* helpers */
+const veh=id=>S.vehicles.find(v=>v.id==id);
+const vname=id=>{const v=veh(id);return v?`${esc(v.name)} <span class="plate">${esc(v.plate)}</span>`:'(deleted vehicle)'};
+const vplain=id=>{const v=veh(id);return v?`${v.name} (${v.plate})`:'(deleted vehicle)'};
+const ok=x=>!fv||x.vid==fv;
+const latest=id=>S.services.filter(s=>s.vid==id).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+const curOdo=v=>Math.max(+v.odo||0,...S.services.filter(s=>s.vid==v.id).map(s=>+s.odo||0));
+function bd(d){const n=dl(d);if(n===null)return['','No date'];return n<0?['bad',`Overdue ${-n} d`]:n==0?['bad','Due today']:n<=15?['warn',`${n} days left`]:['ok',`${n} days left`]}
+function bk(r){return r<=0?['bad',`Overdue ${-r} km`]:r<=500?['warn',`${r} km left`]:['ok',`${r} km left`]}
+const b=(a,k,id,l)=>`<button onclick="act('${a}','${k}','${id}')">${l}</button>`;
+const std=(k,id,extra='')=>extra+b('edit',k,id,'Edit')+b('dup',k,id,'Duplicate')+b('copy',k,id,'Copy')+b('del',k,id,'Delete');
+/* due items */
+function dues(){const a=[];
+ S.renewals.filter(r=>r.status!='renewed'&&ok(r)).forEach(r=>a.push({n:dl(r.due),t:`${KL[r.kind]}: ${vname(r.vid)}`,s:`Expires ${r.due}`,b:bd(r.due),tab:r.kind=='insurance'?'ins':'lic'}));
+ S.vehicles.filter(v=>!fv||v.id==fv).forEach(v=>{const L=latest(v.id);if(!L)return;
+  if(L.nextDate)a.push({n:dl(L.nextDate),t:`Service: ${vname(v.id)}`,s:`Next service date ${L.nextDate}`,b:bd(L.nextDate),tab:'srv'});
+  if(+L.nextKm){const r=+L.nextKm-curOdo(v),x=bk(r);a.push({n:r<=0?-1:r<=500?15:9999,t:`Service: ${vname(v.id)}`,s:`Next service at ${L.nextKm} km (now ${curOdo(v)} km)`,b:x,tab:'srv'})}});
+ return a.sort((x,y)=>x.n-y.n)}
+const dueCard=x=>`<div class="card ${x.b[0]}" onclick="tab='${x.tab}';render()"><div class="row"><b>${x.t}</b><span class="badge ${x.b[0]}">${x.b[1]}</span></div><div class="sub">${x.s}</div></div>`;
+/* views */
+const V={
+home(){const d=dues(),al=d.filter(x=>x.b[0]=='bad'||x.b[0]=='warn'),up=d.filter(x=>x.b[0]=='ok'&&x.n<=90);
+ if(!S.vehicles.length)return `<div class="empty">No vehicles yet.<br><br><button class="pri" onclick="edit('veh')">Add your first vehicle</button></div>`+qa();
+ return `<div class="stats"><div class="stat"><b>${S.vehicles.filter(v=>!fv||v.id==fv).length}</b>Vehicles</div><div class="stat"><b>${S.renewals.filter(r=>r.status!='renewed'&&ok(r)).length}</b>Active papers</div><div class="stat"><b style="color:var(--${al.length?'bad':'ok'})">${al.length}</b>Alerts</div></div>`+qa()+
+ `<h2>Needs attention (15 days or less)</h2>`+(al.map(dueCard).join('')||`<div class="empty">All clear. Nothing expires within 15 days.</div>`)+
+ (up.length?`<h2>Coming up (90 days)</h2>`+up.map(dueCard).join(''):'')+`<footer>Developed by Santosh Phuyal</footer>`},
+ins:()=>rl('insurance'),lic:()=>rl('license'),
+srv(){const l=S.services.filter(ok).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ return `<div class="top"><button class="pri" onclick="edit('srv')">+ Add service record</button></div>`+(l.map(s=>{const v=veh(s.vid),L=latest(s.vid)===s,n=(s.tasks||[]).filter(t=>t.d).length;
+  let nx='';if(L&&(s.nextDate||+s.nextKm)){const p=[];if(s.nextDate){const x=bd(s.nextDate);p.push(`<span class="badge ${x[0]}">${s.nextDate}: ${x[1]}</span>`)}if(+s.nextKm&&v){const x=bk(+s.nextKm-curOdo(v));p.push(`<span class="badge ${x[0]}">${s.nextKm} km: ${x[1]}</span>`)}nx=`<div class="chips">Next: ${p.join(' ')}</div>`}
+  return `<div class="card ${L?'ok':''}"><div class="row"><b>${vname(s.vid)}</b><span class="badge">${esc(s.date)}</span></div><div class="sub">${s.odo?esc(s.odo)+' km':''} ${s.center?'at '+esc(s.center):''} ${s.cost?'. NPR '+esc(s.cost):''}\n${esc(s.notes)}</div><div class="chips">${(s.tasks||[]).map((t,i)=>`<span class="chip ${t.d?'on':''}" onclick="tg('${s.id}',${i})">${t.d?'&#10003; ':''}${esc(t.t)}</span>`).join('')}</div><div class="sub">${n}/${(s.tasks||[]).length} tasks done</div>${nx}<div class="acts">${std('srv',s.id)}</div></div>`}).join('')||`<div class="empty">No service records yet.</div>`)},
+veh(){return `<div class="top"><button class="pri" onclick="edit('veh')">+ Add vehicle</button></div>`+(S.vehicles.map(v=>`<div class="card"><div class="row"><b>${esc(v.name)}</b><span class="plate">${esc(v.plate)}</span></div><div class="sub">${esc(v.type)}. Odometer ${curOdo(v)} km\n${esc(v.notes)}</div><div class="acts">${std('veh',v.id)}</div></div>`).join('')||`<div class="empty">No vehicles yet.</div>`)},
+data(){return `<h2>Backup and restore</h2><div class="acts"><button class="pri" onclick="expJ()">Backup JSON</button><button class="pri" onclick="expX()">Backup Excel</button></div>
+<div class="acts"><label>Restore JSON<input type="file" accept=".json" onchange="impJ(this.files[0]);this.value=''"></label><label>Restore Excel<input type="file" accept=".xlsx,.xls" onchange="impX(this.files[0]);this.value=''"></label></div>
+<h2>Default service checklist (one task per line)</h2><textarea id="cl" rows="8">${esc(S.checklist.join('\n'))}</textarea><div class="acts"><button onclick="S.checklist=$('#cl').value.split('\n').map(x=>x.trim()).filter(Boolean);save();toast('Checklist saved')">Save checklist</button></div>
+<h2>Danger zone</h2><button class="bad" onclick="ask('Delete ALL vehicles, renewals and service records? Back up first. This cannot be undone.',()=>{S.vehicles=[];S.renewals=[];S.services=[];save();render();toast('All data cleared')})">Clear all data</button><footer>Developed by Santosh Phuyal</footer>`}};
+const qa=()=>`<div class="top"><input id="q" placeholder="Quick: ba1pa1234 insurance 2027-03-10 rs12000" onkeydown="event.key=='Enter'&&quick()"><button class="pri" onclick="quick()">Add</button></div><div class="sub" style="margin:-4px 0 12px">Words: insurance, license, service. Use rs for amount and km for odometer.</div>`;
+function rl(kind){const l=S.renewals.filter(r=>r.kind==kind&&ok(r)),a=l.filter(r=>r.status!='renewed').sort((x,y)=>x.due.localeCompare(y.due)),h=l.filter(r=>r.status=='renewed').sort((x,y)=>(y.renewedOn||'').localeCompare(x.renewedOn||''));
+ return `<div class="top"><button class="pri" onclick="edit('ren',null,0,'${kind}')">+ Add ${kind=='insurance'?'insurance':'license'}</button></div>`+(a.map(r=>{const x=bd(r.due);return `<div class="card ${x[0]}"><div class="row"><b>${vname(r.vid)}</b><span class="badge ${x[0]}">${x[1]}</span></div><div class="sub">Valid ${esc(r.start)||'?'} to ${esc(r.due)}\n${esc(r.ref)} ${r.amount?'. NPR '+esc(r.amount):''}\n${esc(r.notes)}</div><div class="acts">${std('ren',r.id,b('renew','ren',r.id,'Renew'))}</div></div>`}).join('')||`<div class="empty">No active records.</div>`)+
+ (h.length?`<details><summary>Renewal history (${h.length})</summary>${h.map(r=>`<div class="card"><div class="row"><b>${vname(r.vid)}</b><span class="badge">Renewed ${esc(r.renewedOn)}</span></div><div class="sub">Was valid ${esc(r.start)||'?'} to ${esc(r.due)}\n${esc(r.ref)} ${r.amount?'. NPR '+esc(r.amount):''}</div><div class="acts">${std('ren',r.id)}</div></div>`).join('')}</details>`:'')}
+function render(){$('#fv').innerHTML='<option value="">All vehicles</option>'+S.vehicles.map(v=>`<option value="${v.id}" ${v.id==fv?'selected':''}>${esc(v.name)} (${esc(v.plate)})</option>`).join('');
+ $('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k==tab?'on':''}" onclick="tab='${k}';render();scrollTo(0,0)">${l}</button>`).join('');$('#m').innerHTML=V[tab]()}
+/* forms */
+const vopts=()=>[['','Select vehicle'],...S.vehicles.map(v=>[v.id,`${v.name} (${v.plate})`])];
+const F={veh:()=>[{k:'name',l:'Vehicle name (e.g. Honda Shine)',t:'text'},{k:'plate',l:'Plate number',t:'text'},{k:'type',l:'Type',t:'select',o:['Motorcycle','Scooter','Car','Jeep / SUV','Truck','Bus','Other'].map(x=>[x,x])},{k:'odo',l:'Current odometer (km)',t:'number'},{k:'notes',l:'Notes',t:'area'}],
+ ren:k=>[{k:'vid',l:'Vehicle',t:'select',o:vopts()},{k:'ref',l:k=='insurance'?'Company / policy no.':'Office / receipt no.',t:'text'},{k:'amount',l:'Amount (NPR)',t:'number'},{k:'start',l:'Start date',t:'date'},{k:'due',l:'Expiry / due date',t:'date'},{k:'notes',l:'Notes',t:'area'}],
+ srv:()=>[{k:'vid',l:'Vehicle',t:'select',o:vopts()},{k:'date',l:'Service date',t:'date'},{k:'odo',l:'Odometer (km)',t:'number'},{k:'cost',l:'Cost (NPR)',t:'number'},{k:'center',l:'Service center',t:'text'},{k:'tasks',l:'Checklist',t:'tasks'},{k:'nextDate',l:'Next service date',t:'date'},{k:'nextKm',l:'Next service at (km)',t:'number'},{k:'notes',l:'Notes',t:'area'}]};
+function form(title,fields,o,cb){const names=o.tasks?[...new Set([...o.tasks.map(t=>t.t),...S.checklist])]:[];
+ dlg.innerHTML=`<form method="dialog"><h3>${title}</h3>`+fields.map(f=>{const v=o[f.k]??'';let i;
+  if(f.t=='select')i=`<select name="${f.k}">${f.o.map(x=>`<option value="${esc(x[0])}" ${x[0]==v?'selected':''}>${esc(x[1])}</option>`).join('')}</select>`;
+  else if(f.t=='area')i=`<textarea name="${f.k}" rows="2">${esc(v)}</textarea>`;
+  else if(f.t=='tasks')return `<label>${f.l}</label>`+names.map(n=>`<div class="tk"><input type="checkbox" name="tk" value="${esc(n)}" ${((o.tasks||[]).find(t=>t.t==n)||{}).d?'checked':''}> ${esc(n)}</div>`).join('')+`<label>Extra tasks (comma separated)<input name="xt"></label>`;
+  else i=`<input name="${f.k}" type="${f.t}" value="${esc(v)}" ${f.t=='number'?'step="any" inputmode="decimal"':''}>`;
+  return `<label>${f.l}${i}</label>`}).join('')+`<div class="acts"><button type="button" onclick="dlg.close()">Cancel</button><button class="pri">Save</button></div></form>`;
+ dlg.querySelector('form').onsubmit=e=>{e.preventDefault();const fd=new FormData(e.target),r={};
+  fields.forEach(f=>{if(f.t=='tasks'){const on=fd.getAll('tk');r.tasks=names.map(t=>({t,d:on.includes(t)})).concat((fd.get('xt')||'').split(',').map(x=>x.trim()).filter(Boolean).map(t=>({t,d:false})))}else r[f.k]=fd.get(f.k)});
+  if(cb(r)!==false)dlg.close()};dlg.showModal()}
+function edit(k,id,dup,kind){const c=S[C[k]];let o=id?{...c.find(x=>x.id==id)}:{};
+ if(!id){if(k=='ren'){o.kind=kind;o.status='active'}if(k=='srv'){o.tasks=S.checklist.map(t=>({t,d:false}));o.date=todayS();o.vid=fv}if(k=='ren')o.vid=fv}
+ if(dup){o.id=null;if(k=='veh')o.name+=' (copy)';if(k=='ren'){o.status='active';delete o.renewedOn}}
+ const oid=dup?null:id;
+ form((oid?'Edit ':'Add ')+({veh:'vehicle',ren:KL[o.kind]||'',srv:'service record'})[k],F[k](o.kind),o,r=>{
+  if(k=='veh'&&!r.name)return toast('Enter a vehicle name'),false;
+  if(k!='veh'&&!r.vid)return toast('Select a vehicle'),false;
+  if(k=='ren'&&!r.due)return toast('Enter the expiry date'),false;
+  if(k=='srv'&&!r.date)return toast('Enter the service date'),false;
+  if(oid){const i=c.findIndex(x=>x.id==oid);c[i]={...c[i],...r}}else c.push({...o,...r,id:uid()});
+  save();render();toast('Saved')})}
+function renew(id){const old=S.renewals.find(r=>r.id==id);
+ const f=F.ren(old.kind).filter(x=>x.k!='vid');f.push({k:'renewedOn',l:'Renewed / paid on',t:'date'});
+ form(`Renew ${KL[old.kind]}`,f,{...old,start:old.due,due:addY(old.due),renewedOn:todayS()},r=>{
+  if(!r.due)return toast('Enter the new expiry date'),false;
+  const{renewedOn,...n}=r;old.status='renewed';old.renewedOn=renewedOn||todayS();
+  S.renewals.push({...old,...n,id:uid(),status:'active',renewedOn:undefined});save();render();toast('Renewed. Old record moved to history')})}
+function txt(k,o){if(k=='veh')return `${o.name} (${o.plate})\n${o.type}, ${o.odo||0} km`;
+ if(k=='ren')return `${KL[o.kind]}: ${vplain(o.vid)}\nValid ${o.start||'?'} to ${o.due}\n${o.ref||''} ${o.amount?'NPR '+o.amount:''}`;
+ return `Service: ${vplain(o.vid)}\n${o.date}, ${o.odo||'?'} km, ${o.center||''}\n`+(o.tasks||[]).map(t=>(t.d?'[x] ':'[ ] ')+t.t).join('\n')+`\nNext: ${o.nextDate||'-'} / ${o.nextKm||'-'} km`}
+function act(a,k,id){const c=S[C[k]],o=c.find(x=>x.id==id);
+ if(a=='edit')edit(k,id);else if(a=='dup')edit(k,id,1);else if(a=='renew')renew(id);
+ else if(a=='copy'){const t=txt(k,o);const done=()=>toast('Copied');(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(done).catch(()=>{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');done()}catch(e){toast('Copy failed')}x.remove()})}
+ else if(a=='del')ask(k=='veh'?'Delete this vehicle and all its renewals and service records?':'Delete this record?',()=>{if(k=='veh'){S.renewals=S.renewals.filter(r=>r.vid!=id);S.services=S.services.filter(r=>r.vid!=id);if(fv==id)fv=''}S[C[k]]=c.filter(x=>x.id!=id);save();render();toast('Deleted')})}
+function tg(id,i){const s=S.services.find(x=>x.id==id);s.tasks[i].d=!s.tasks[i].d;save();render()}
+function ask(msg,fn){dlg.innerHTML=`<form method="dialog"><p>${msg}</p><div class="acts"><button type="button" onclick="dlg.close()">Cancel</button><button class="bad">Confirm</button></div></form>`;dlg.querySelector('form').onsubmit=e=>{e.preventDefault();dlg.close();fn()};dlg.showModal()}
+/* quick entry */
+function quick(){const t=$('#q').value.trim();if(!t)return;const low=t.toLowerCase(),flat=low.replace(/\s/g,'');
+ const v=S.vehicles.find(v=>v.plate&&flat.includes(v.plate.toLowerCase().replace(/\s/g,'')))||S.vehicles.find(v=>v.name&&low.includes(v.name.toLowerCase()))||(S.vehicles.length==1?S.vehicles[0]:null);
+ if(!v)return toast('Vehicle not found. Include its plate or name.');
+ const kind=/insur/.test(low)?'insurance':/licen|bluebook|blue book|tax/.test(low)?'license':/serv/.test(low)?'service':null;
+ if(!kind)return toast('Add the word insurance, license or service.');
+ const dm=low.match(/\d{4}-\d{2}-\d{2}/),am=low.match(/(?:rs\.?|npr)\s*(\d+(?:\.\d+)?)/),km=low.match(/(\d+(?:\.\d+)?)\s*km/);
+ if(kind=='service')S.services.push({id:uid(),vid:v.id,date:dm?dm[0]:todayS(),odo:km?km[1]:'',cost:am?am[1]:'',center:'',tasks:S.checklist.map(t=>({t,d:false})),nextDate:'',nextKm:'',notes:'Quick entry'});
+ else{const due=dm?dm[0]:addY(todayS());S.renewals.push({id:uid(),kind,vid:v.id,ref:'',amount:am?am[1]:'',start:addY(due,-1),due,notes:'Quick entry',status:'active'})}
+ save();tab=kind=='insurance'?'ins':kind=='license'?'lic':'srv';render();toast('Added. Tap Edit to add details.')}
+/* backup */
+function dlf(n,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+const expJ=()=>{dlf(`vehicle-tracker-${todayS()}.json`,new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));toast('JSON backup created')};
+function expX(){if(!window.XLSX)return toast('Excel library not loaded. Check internet.');const wb=XLSX.utils.book_new(),add=(n,r)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r),n);
+ add('Vehicles',S.vehicles);add('Renewals',S.renewals);add('Services',S.services.map(s=>({...s,tasks:(s.tasks||[]).map(t=>(t.d?'[x] ':'[ ] ')+t.t).join(' | ')})));add('Checklist',S.checklist.map(task=>({task})));
+ XLSX.writeFile(wb,`vehicle-tracker-${todayS()}.xlsx`);toast('Excel backup created')}
+function apply(d){if(!d||!Array.isArray(d.vehicles)||!Array.isArray(d.renewals)||!Array.isArray(d.services))return toast('Invalid backup file');
+ ask(`Restore ${d.vehicles.length} vehicles, ${d.renewals.length} renewals, ${d.services.length} services? This replaces current data.`,()=>{S={checklist:S.checklist,...d,checklist:Array.isArray(d.checklist)&&d.checklist.length?d.checklist:S.checklist};save();render();toast('Restored')})}
+async function impJ(f){if(!f)return;try{apply(JSON.parse(await f.text()))}catch(e){toast('Could not read JSON file')}}
+async function impX(f){if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),g=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:''}):[],s=x=>String(x);
+ apply({vehicles:g('Vehicles').map(x=>({...x,id:s(x.id)})),renewals:g('Renewals').map(x=>({...x,id:s(x.id),vid:s(x.vid)})),
+ services:g('Services').map(x=>({...x,id:s(x.id),vid:s(x.vid),tasks:s(x.tasks||'').split(' | ').filter(Boolean).map(t=>({d:t.startsWith('[x]'),t:t.slice(4)}))})),checklist:g('Checklist').map(x=>s(x.task))})}catch(e){toast('Could not read Excel file')}}
+load().then(d=>{if(d&&Array.isArray(d.vehicles))S={...S,...d};render()});render();
+</script></body></html>

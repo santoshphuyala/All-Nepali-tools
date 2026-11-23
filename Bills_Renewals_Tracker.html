@@ -33,6 +33,7 @@ dialog::backdrop{background:#0008}
 .ban{background:var(--rd);color:#fff;border-radius:10px;padding:10px 12px;margin-bottom:10px;animation:bl 1.2s infinite}
 .mu{color:var(--mu)}
 .bk{display:inline-block;margin:2px 0 4px;font-size:13px;color:var(--ac);text-decoration:none}.bk:hover{text-decoration:underline}
+@media(max-width:560px){.w{padding:10px}h1{font-size:18px}.bar>*{min-width:100px}dialog{width:min(440px,96vw)}}
 </style></head><body><div class="w">
 <a class="bk" href="index.html">← All tools</a>
 <h1>🔔 Bills &amp; Renewals Tracker</h1>
@@ -52,7 +53,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const today=()=>iso(new Date());
 const dd=s=>Math.round((new Date(s+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5);
-const money=n=>esc(D.cur)+' '+(+n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const money=n=>esc(D.cur)+' '+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
 const okD=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(new Date(s+'T00:00:00'));
 const sid=v=>String(v||'').replace(/[^\w-]/g,'')||uid();
 const clean=n=>({cur:String(n&&n.cur||'Rs').slice(0,8),
@@ -139,8 +140,16 @@ function saveR(id){const o={name:$('#f_n').value.trim(),cat:$('#f_c').value,ref:
  if(r){const ch=r.due!==o.due;Object.assign(r,o);if(ch)r.done=false}else D.reminders.push({id:uid(),done:false,...o});save();close_();render()}
 async function delR(id){if(await ask('Delete this reminder?','Delete','Cancel')){D.reminders=D.reminders.filter(r=>r.id!==id);save();render()}}
 async function paid(id){const r=D.reminders.find(x=>x.id===id);if(!r)return;
- if(r.amt&&await ask(`Log ${D.cur} ${r.amt} to expenses?`,'Log it','Skip'))D.expenses.push({id:uid(),date:today(),title:r.name,cat:r.cat,amt:r.amt,notes:'Paid via reminder'});
- if(r.cycle==='once')r.done=true;else{const dy=r.day||+r.due.slice(8);let n=addCyc(r.due,r.cycle,dy),g=0;while(dd(n)<0&&g++<500)n=addCyc(n,r.cycle,dy);r.due=n}
+ const dy=r.day||+r.due.slice(8);let n=r.due,missed=[],g=0;
+ if(r.cycle!=='once'){while(dd(n)<0&&g++<500){missed.push(n);n=addCyc(n,r.cycle,dy)}}
+ if(r.amt){
+  if(missed.length>1){
+   const all=await ask(`${missed.length} payments are overdue (${missed[0]} to ${missed[missed.length-1]}). Log all ${missed.length} to expenses, ${D.cur} ${r.amt} each?`,`Log all ${missed.length}`,'Only one, today');
+   if(all)missed.forEach(d=>D.expenses.push({id:uid(),date:d,title:r.name,cat:r.cat,amt:r.amt,notes:'Missed cycle, paid via reminder'}));
+   else D.expenses.push({id:uid(),date:today(),title:r.name,cat:r.cat,amt:r.amt,notes:'Paid via reminder'});
+  }else if(await ask(`Log ${D.cur} ${r.amt} to expenses?`,'Log it','Skip'))D.expenses.push({id:uid(),date:today(),title:r.name,cat:r.cat,amt:r.amt,notes:'Paid via reminder'});
+ }
+ if(r.cycle==='once')r.done=true;else r.due=missed.length?n:addCyc(r.due,r.cycle,dy);
  save();render()}
 function editE(id){const e=D.expenses.find(x=>x.id===id)||{title:'',cat:'Other',amt:'',date:today(),notes:''};
  open_(`<div style="padding:14px"><b>${id?'Edit':'Add'} expense</b>
@@ -153,8 +162,8 @@ function saveE(id){const o={title:$('#e_t').value.trim(),amt:+$('#e_a').value||0
  const e=D.expenses.find(x=>x.id===id);e?Object.assign(e,o):D.expenses.push({id:uid(),...o});save();close_();render()}
 async function delE(id){if(await ask('Delete this expense?','Delete','Cancel')){D.expenses=D.expenses.filter(e=>e.id!==id);save();render()}}
 /* backup */
-async function dl(name,data){try{const d=await claude.use('downloads');if(d){await d.save({filename:name,data});return}}catch(e){if(e&&e.code==='declined')return}
- const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=name;a.click()}
+async function dl(name,data){try{const d=await claude.use('downloads');if(d){await d.save({filename:name,data});bkMark();return}}catch(e){if(e&&e.code==='declined')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=name;a.click();bkMark()}
 const stamp=()=>today();
 function expJSON(){dl(`bills-backup-${stamp()}.json`,new Blob([JSON.stringify(D,null,2)],{type:'application/json'}))}
 function expXLS(){if(typeof XLSX==='undefined')return ask('The Excel library failed to load. Check your connection and reload.','OK','');const wb=XLSX.utils.book_new();
@@ -182,5 +191,7 @@ function notify(){try{if(!('Notification' in window)||Notification.permission!==
  new Notification('Bills & renewals',{body:l.slice(0,5).map(r=>`${r.name}: ${when(r)}`).join('\n')});localStorage.setItem(k,t)}catch(e){}}
 try{localStorage.setItem('billsApp.t','1');localStorage.removeItem('billsApp.t')}catch(e){storeOK=false}
 try{const s=localStorage.getItem(KEY);if(s)D=clean(JSON.parse(s))}catch(e){}
-render();notify();
+render();notify();function bkMark(){try{localStorage.setItem('np-bk-bills',String(Date.now()))}catch(e){}}
+function npNag(id,has,act,legacy){try{if(!has||sessionStorage.getItem('np-nag-'+id))return;const t=+localStorage.getItem('np-bk-'+id)||(legacy?Date.parse(legacy):0)||0,age=t?Math.floor((Date.now()-t)/864e5):null;if(age!==null&&age<14)return;const d=document.createElement('div');d.setAttribute('role','status');d.style.cssText='background:#fff3cd;color:#664d03;border:1px solid #e0c36a;border-radius:10px;padding:8px 12px;margin:8px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';const s=document.createElement('span');s.style.flex='1 1 220px';s.textContent=(age===null?'No backup yet. ':'Last backup '+age+' days ago. ')+'Your data is stored only in this browser; clearing site data erases it.';const b=document.createElement('button'),x=document.createElement('button');b.textContent='Back up now';x.textContent='Later';b.onclick=()=>{d.remove();act()};x.onclick=()=>{try{sessionStorage.setItem('np-nag-'+id,'1')}catch(e){}d.remove()};d.append(s,b,x);document.body.prepend(d)}catch(e){}}
+npNag('bills',D.reminders.length+D.expenses.length>=3,()=>{tab='bak';render()});
 </script></body></html>

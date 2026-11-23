@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Insurance Policy Reminder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f6fa;--card:#fff;--tx:#1b2430;--mu:#6b7686;--bd:#dde3ec;--pr:#1f5fbf;--ok:#1d8a4b;--wa:#c98a00;--dg:#d93025;--inp:#fff}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10151c;--card:#19212b;--tx:#e8edf4;--mu:#93a0b2;--bd:#2c3846;--pr:#5b9bff;--ok:#43c279;--wa:#f0b429;--dg:#ff6b61;--inp:#202b37}}
+:root[data-theme="dark"]{--bg:#10151c;--card:#19212b;--tx:#e8edf4;--mu:#93a0b2;--bd:#2c3846;--pr:#5b9bff;--ok:#43c279;--wa:#f0b429;--dg:#ff6b61;--inp:#202b37}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:1100px;margin:auto;padding:14px}
+h1{font-size:1.35rem;margin:0}.sub{color:var(--mu);font-size:.85rem}
+header{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.bar{display:flex;flex-wrap:wrap;gap:6px}
+button,.btn{background:var(--pr);color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font:inherit;font-size:.88rem}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.d{background:var(--dg)}button.s{background:var(--ok)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center}.stat b{display:block;font-size:1.4rem}
+input,select,textarea{background:var(--inp);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px;font:inherit;width:100%}
+label{font-size:.78rem;color:var(--mu);display:block;margin-bottom:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.tri{display:grid;grid-template-columns:1.2fr 1.6fr 1fr;gap:4px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:8px;border-bottom:1px solid var(--bd);text-align:left;font-size:.88rem}th{color:var(--mu);font-weight:600}
+.badge{padding:2px 8px;border-radius:99px;font-size:.78rem;color:#fff;white-space:nowrap}
+.b-ok{background:var(--ok)}.b-wa{background:var(--wa)}.b-dg{background:var(--dg)}.b-gr{background:#7b8794}
+@keyframes bl{50%{opacity:.15}}@keyframes pu{50%{box-shadow:0 0 0 6px transparent}}
+.blink{animation:bl .8s step-end infinite}.blinkrow td{background:color-mix(in srgb,var(--dg) 14%,transparent)}
+.alertbar{border-radius:10px;padding:10px 14px;margin-bottom:8px;color:#fff;font-weight:600}
+.a-wa{background:var(--wa)}.a-dg{background:var(--dg);animation:pu 1.2s infinite;box-shadow:0 0 0 0 var(--dg)}
+#toasts{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:50;max-width:320px}
+.toast{background:var(--dg);color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 4px 14px #0005;font-size:.88rem}.toast.w2{background:var(--wa)}
+.ov{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:60;padding:14px}
+.ov.on{display:flex}.md{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:560px;max-height:90vh;overflow:auto;border:1px solid var(--bd)}
+footer{text-align:center;color:var(--mu);font-size:.82rem;padding:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}
+.bk{display:inline-block;margin:0 0 10px;color:var(--pr);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+@media(max-width:560px){.tri{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.w{padding:10px}}
+</style></head><body><div class="w">
+<a class="bk" href="index.html">← All tools</a>
+<header><div><h1>🛡️ Insurance Policy Reminder</h1><div class="sub">बीमा नवीकरण सूचना • AD / BS • Today: <span id="today"></span></div></div>
+<div class="bar"><button onclick="openForm()">+ Add Policy</button><button class="g" onclick="bk()">Backup JSON</button>
+<button class="g" onclick="jf.click()">Restore JSON</button><button class="g" onclick="xe()">Export Excel</button>
+<button class="g" onclick="xf.click()">Import Excel</button><button class="g" onclick="openCal()">BS Calendar Data</button>
+<button class="g" onclick="notif()">🔔</button></div></header>
+<input type="file" id="jf" accept=".json" hidden><input type="file" id="xf" accept=".xlsx,.xls,.csv" hidden>
+<div id="banners"></div><div class="stats" id="stats"></div>
+<div class="card"><div class="row"><input id="q" placeholder="Search holder, policy no, company…" oninput="render()"><select id="fl" onchange="render()"><option value="">All</option><option value="warn">&lt; 30 days</option><option value="crit">&lt; 15 days</option><option value="exp">Expired</option><option value="renew">Renewed</option></select></div></div>
+<div class="card tw"><table><thead><tr><th>Holder</th><th>Policy No / Company</th><th>Type</th><th>Premium</th><th>Expiry (AD)</th><th>Expiry (BS)</th><th>Days Left</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table><div id="empty" class="sub" style="padding:14px;text-align:center"></div></div>
+<footer>Developed by <b>Santosh Phuyal</b></footer></div>
+<div id="toasts"></div>
+
+<div class="ov" id="fo"><div class="md"><h3 id="ft" style="margin-top:0">Add Policy</h3>
+<div class="grid"><div><label>Policy Holder *</label><input id="h"></div><div><label>Policy Number *</label><input id="pn"></div>
+<div><label>Insurance Company</label><input id="co"></div><div><label>Type</label><select id="ty"><option>Life</option><option>Health</option><option>Vehicle</option><option>Property</option><option>Travel</option><option>Other</option></select></div>
+<div><label>Premium (NPR)</label><input id="pm" type="number" min="0"></div><div><label>Contact / Phone</label><input id="ph"></div></div>
+<h4 style="margin:14px 0 6px">Expiry Date (change either – other auto-fills)</h4>
+<div class="grid"><div><label>AD (English)</label><input type="date" id="ad" onchange="fromAD()"></div>
+<div><label>BS (बि.सं.) Year / Month / Day</label><div class="tri"><select id="by" onchange="fillDays();fromBS()"></select><select id="bm" onchange="fillDays();fromBS()"></select><select id="bd" onchange="fromBS()"></select></div></div></div>
+<div style="margin-top:10px"><label>Notes</label><textarea id="nt" rows="2"></textarea></div>
+<div class="row" style="margin-top:12px"><button class="s" onclick="save()">Save</button><button class="g" onclick="closeM('fo')">Cancel</button></div></div></div>
+
+<div class="ov" id="xo"><div class="md"><h3 style="margin-top:0;color:var(--dg)">⚠ Policy Expired</h3><p id="xt"></p>
+<div class="row"><button class="s" id="xr">✔ Renewed</button><button class="d" id="xe">✖ Expired (No renewal)</button><button class="g" onclick="skipX()">Later</button></div></div></div>
+
+<div class="ov" id="co2"><div class="md"><h3 style="margin-top:0">BS Calendar Data (days per month)</h3>
+<p class="sub">Edit JSON {"2080":[12 numbers],…}. Add new years (e.g. 2091) when official data is published. First day of BS 2080 Baisakh = 2023-04-14 AD.</p>
+<textarea id="cj" rows="12" style="font-family:monospace;font-size:.78rem"></textarea>
+<div class="row" style="margin-top:10px"><button class="s" onclick="saveCal()">Save</button><button class="g" onclick="resetCal()">Reset default</button><button class="g" onclick="closeM('co2')">Close</button></div></div></div>
+
+<script>
+const DEF={2080:[31,32,31,32,31,30,30,30,29,29,30,30],2081:[31,31,32,32,31,30,30,30,29,30,30,30],2082:[30,32,31,32,31,30,30,30,29,30,30,30],2083:[31,31,32,31,31,31,30,29,30,29,30,30],2084:[31,31,32,31,31,31,30,29,30,29,30,30],2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,30,29,30,30,30],2087:[31,31,32,32,31,30,30,30,29,30,30,30],2088:[30,31,32,32,30,31,30,30,29,30,30,30],2089:[30,32,31,32,31,30,30,30,29,30,30,30],2090:[30,32,31,32,31,30,30,30,29,30,30,30]};
+const BSM=["Baisakh","Jestha","Ashadh","Shrawan","Bhadra","Ashwin","Kartik","Mangsir","Poush","Magh","Falgun","Chaitra"];
+const ANC=Date.UTC(2023,3,14),DAY=864e5,$=i=>document.getElementById(i);
+let CAL,P=[],editId=null,renewId=null,xq=[],skipped=new Set(),lastSig="";
+const ld=(k,f)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const okD=s=>{const t=String(s||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(t))return false;const d=new Date(t+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===t};
+const okCal=c=>{if(!c||typeof c!=='object'||Array.isArray(c))return false;const ks=Object.keys(c).map(Number).sort((a,b)=>a-b);return ks[0]===2080&&ks.every((y,i)=>Number.isInteger(y)&&y>=2080&&Array.isArray(c[y])&&c[y].length===12&&c[y].every(n=>n>=28&&n<=32))&&ks.every((y,i)=>i===0||y===ks[i-1]+1)};
+function normPol(p){if(!p||typeof p!=='object')return null;const o={id:String(p.id||('p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),holder:String(p.holder||'').trim(),pno:String(p.pno||''),company:String(p.company||''),type:String(p.type||'Other'),premium:['string','number'].includes(typeof p.premium)?p.premium:'',phone:String(p.phone||''),notes:String(p.notes||''),expiry:okD(p.expiry)?p.expiry:'',status:p.status==='expired'?'expired':'active',renewed:!!p.renewed};return o.holder&&o.pno&&o.expiry?o:null}
+const _pc=ld("pr_pol",[]),_cc=ld("pr_cal",null);CAL=okCal(_cc)?_cc:DEF;P=(Array.isArray(_pc)?_pc:[]).map(normPol).filter(Boolean);
+const yrs=()=>Object.keys(CAL).map(Number).sort((a,b)=>a-b);
+function bs2ad(y,m,d){let n=0;for(const k of yrs()){if(k>=y)break;n+=CAL[k].reduce((a,b)=>a+b,0)}for(let i=0;i<m-1;i++)n+=CAL[y][i];n+=d-1;return new Date(ANC+n*DAY).toISOString().slice(0,10)}
+function ad2bs(iso){const [Y,M,D]=iso.split("-").map(Number);let n=Math.round((Date.UTC(Y,M-1,D)-ANC)/DAY);if(n<0)return null;for(const y of yrs()){const t=CAL[y].reduce((a,b)=>a+b,0);if(n>=t){n-=t;continue}for(let m=0;m<12;m++){if(n<CAL[y][m])return{y,m:m+1,d:n+1};n-=CAL[y][m]}}return null}
+const bsStr=iso=>{const b=iso&&ad2bs(iso);return b?`${b.y}-${String(b.m).padStart(2,"0")}-${String(b.d).padStart(2,"0")} (${BSM[b.m-1]})`:"—"};
+const todayISO=()=>{const t=new Date();return`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`};
+const dl=iso=>{const [a,b,c]=iso.split("-").map(Number),[x,y,z]=todayISO().split("-").map(Number);return Math.round((Date.UTC(a,b-1,c)-Date.UTC(x,y-1,z))/DAY)};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function lvl(p){if(p.status==="expired")return"exp";const d=dl(p.expiry);if(d<0)return"pend";if(d<7)return"blink";if(d<15)return"crit";if(d<30)return"warn";return"ok"}
+function render(){
+$("today").textContent=todayISO()+" AD / "+bsStr(todayISO());
+const q=$("q").value.toLowerCase(),f=$("fl").value;
+let rows=P.filter(p=>(p.holder+p.pno+p.company).toLowerCase().includes(q)).filter(p=>{const l=lvl(p),d=dl(p.expiry);
+return!f||(f==="warn"&&p.status!=="expired"&&d>=0&&d<30)||(f==="crit"&&p.status!=="expired"&&d>=0&&d<15)||(f==="exp"&&(l==="exp"||l==="pend"))||(f==="renew"&&p.renewed)});
+rows.sort((a,b)=>a.expiry.localeCompare(b.expiry));
+$("tb").innerHTML=rows.map(p=>{const l=lvl(p),d=dl(p.expiry);let bc="b-ok",tx=d+" days";
+if(l==="warn"){bc="b-wa"}else if(l==="crit"){bc="b-dg"}else if(l==="blink"){bc="b-dg blink"}else if(l==="exp"||l==="pend"){bc="b-gr";tx=l==="exp"?"Expired":"Expired "+Math.abs(d)+"d ago"}
+const st=p.status==="expired"?'<span class="badge b-gr">Expired</span>':l==="pend"?'<span class="badge b-dg blink">Action needed</span>':p.renewed?'<span class="badge b-ok">Renewed</span>':'<span class="badge b-ok">Active</span>';
+return`<tr class="${l==="blink"||l==="pend"?"blinkrow":""}"><td><b>${esc(p.holder)}</b><div class="sub">${esc(p.phone)}</div></td><td>${esc(p.pno)}<div class="sub">${esc(p.company)}</div></td><td>${esc(p.type)}</td><td>${p.premium?"Rs "+Number(p.premium).toLocaleString():"—"}</td><td>${p.expiry}</td><td>${bsStr(p.expiry)}</td><td><span class="badge ${bc}">${tx}</span></td><td>${st}</td>
+<td style="white-space:nowrap"><button class="g" onclick="openForm('${p.id}')">Edit</button> <button class="g" onclick="renew('${p.id}')">Renew</button> <button class="d" onclick="del('${p.id}')">✕</button></td></tr>`}).join("");
+$("empty").textContent=rows.length?"":"No policies found. Click “+ Add Policy”.";
+const act=P.filter(p=>p.status!=="expired"),c=(a,b)=>act.filter(p=>{const d=dl(p.expiry);return d>=a&&d<b}).length;
+$("stats").innerHTML=[["Total",P.length,""],["Active",act.filter(p=>dl(p.expiry)>=30).length,"var(--ok)"],["< 30 days",c(15,30),"var(--wa)"],["< 15 days",c(0,15),"var(--dg)"],["Expired",P.filter(p=>p.status==="expired"||dl(p.expiry)<0).length,"var(--mu)"]].map(s=>`<div class="stat"><b style="color:${s[2]}">${s[1]}</b>${s[0]}</div>`).join("");
+const w=act.filter(p=>{const d=dl(p.expiry);return d>=15&&d<30}),r=act.filter(p=>{const d=dl(p.expiry);return d>=0&&d<15});
+$("banners").innerHTML=(r.length?`<div class="alertbar a-dg">🚨 ${r.length} policy(ies) expiring in under 15 days: ${r.map(p=>esc(p.holder)+" ("+dl(p.expiry)+"d)").join(", ")}</div>`:"")+(w.length?`<div class="alertbar a-wa">⏰ ${w.length} policy(ies) renew within 30 days: ${w.map(p=>esc(p.holder)+" ("+dl(p.expiry)+"d)").join(", ")}</div>`:"");
+xq=P.filter(p=>p.status!=="expired"&&dl(p.expiry)<0&&!skipped.has(p.id)).map(p=>p.id);nextX();
+}
+function toast(t,cls){const e=document.createElement("div");e.className="toast "+(cls||"");e.textContent=t;$("toasts").appendChild(e);setTimeout(()=>e.remove(),7000)}
+function beep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+.25)}catch(e){}}
+function notif(){if("Notification"in window)Notification.requestPermission().then(r=>toast("Browser notifications: "+r,"w2"))}
+const alerted=new Set();
+function alertCycle(first){const act=P.filter(p=>p.status!=="expired"),day=todayISO();let any=false;
+act.forEach(p=>{const d=dl(p.expiry);
+if(d>=15&&d<30&&first)toast(`⏰ ${p.holder} (${p.pno}) expires in ${d} days`,"w2");
+if(d>=0&&d<15){const k=p.id+'|'+day+'|'+d;if(alerted.has(k))return;alerted.add(k);any=true;toast(`🚨 ${p.holder} (${p.pno}) expires in ${d} day(s)!`);
+try{if("Notification"in window&&Notification.permission==="granted")new Notification("Policy expiring",{body:`${p.holder} – ${p.pno}: ${d} day(s) left`})}catch(e){}}});
+if(any)beep()}
+function nextX(){if(!xq.length||$("xo").classList.contains("on"))return;const p=P.find(x=>x.id===xq[0]);if(!p)return;
+$("xt").innerHTML=`<b>${esc(p.holder)}</b> – Policy ${esc(p.pno)} (${esc(p.company)}) expired on ${p.expiry} AD / ${bsStr(p.expiry)}.<br>Has this policy been renewed?`;
+$("xr").onclick=()=>{closeM("xo");renew(p.id)};
+$("xe").onclick=()=>{p.status="expired";persist();closeM("xo")};
+$("xo").classList.add("on")}
+function skipX(){skipped.add(xq[0]);closeM("xo");render()}
+function closeM(i){$(i).classList.remove("on");if(i==="xo")setTimeout(render,50)}
+function persist(){sv("pr_pol",P);render()}
+function initSel(){$("by").innerHTML=yrs().map(y=>`<option>${y}</option>`).join("");$("bm").innerHTML=BSM.map((m,i)=>`<option value="${i+1}">${i+1} - ${m}</option>`).join("");fillDays()}
+function fillDays(){const y=+$("by").value,m=+$("bm").value,cur=$("bd").value,n=CAL[y]?CAL[y][m-1]:32;$("bd").innerHTML=Array.from({length:n},(_,i)=>`<option>${i+1}</option>`).join("");if(cur&&+cur<=n)$("bd").value=cur}
+function fromAD(){const v=$("ad").value;if(!v)return;const b=ad2bs(v);if(!b){toast("Date outside BS calendar data range","w2");return}$("by").value=b.y;$("bm").value=b.m;fillDays();$("bd").value=b.d}
+function fromBS(){try{$("ad").value=bs2ad(+$("by").value,+$("bm").value,+$("bd").value)}catch(e){}}
+function openForm(id,renewing){editId=id||null;const p=P.find(x=>x.id===id)||{};renewId=renewing?id:null;
+$("ft").textContent=renewing?"Renew Policy – set new expiry":id?"Edit Policy":"Add Policy";
+$("h").value=p.holder||"";$("pn").value=p.pno||"";$("co").value=p.company||"";$("ty").value=p.type||"Life";$("pm").value=p.premium||"";$("ph").value=p.phone||"";$("nt").value=p.notes||"";
+const d=(renewing?"":p.expiry)||"";$("ad").value=d;if(d)fromAD();else{$("by").selectedIndex=0;$("bm").value=1;fillDays();$("bd").value=1;$("ad").value=""}
+$("fo").classList.add("on")}
+function renew(id){openForm(id,true);toast("Enter the new expiry date and save","w2")}
+function save(){const h=$("h").value.trim(),pn=$("pn").value.trim(),ad=$("ad").value;
+if(!h||!pn||!ad){alert("Holder, policy number and expiry date are required.");return}
+const o={holder:h,pno:pn,company:$("co").value.trim(),type:$("ty").value,premium:$("pm").value,phone:$("ph").value.trim(),notes:$("nt").value.trim(),expiry:ad};
+if(editId){const p=P.find(x=>x.id===editId);Object.assign(p,o);if(renewId){p.status="active";p.renewed=true;skipped.delete(p.id)}else if(dl(ad)>=0&&p.status==="expired"){p.status="active"}}
+else P.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,6),status:"active",...o});
+closeM("fo");persist()}
+function del(id){if(confirm("Delete this policy?")){P=P.filter(p=>p.id!==id);persist()}}
+function dlFile(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function bk(){dlFile(`policy-backup-${todayISO()}.json`,new Blob([JSON.stringify({app:"policy-reminder",by:"Santosh Phuyal",policies:P,calendar:CAL},null,2)],{type:"application/json"}))}
+$("jf").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result),arr=Array.isArray(d)?d:d.policies;if(!Array.isArray(arr))throw 0;const np=arr.map(normPol).filter(Boolean),nc=d&&okCal(d.calendar)?d.calendar:null;
+if(!confirm(`Restore ${np.length} policies? This replaces current data.`))return;P=np;if(nc){CAL=nc;sv("pr_cal",CAL);initSel()}persist();toast("Restore complete","w2")}catch(x){alert("Invalid backup file")}};r.readAsText(f);e.target.value=""};
+function xe(){if(typeof XLSX==="undefined"){alert("Excel library not loaded");return}
+const rows=P.map(p=>({ID:p.id,Holder:p.holder,PolicyNo:p.pno,Company:p.company,Type:p.type,Premium:p.premium,Phone:p.phone,ExpiryAD:p.expiry,ExpiryBS:bsStr(p.expiry),Status:p.status,Renewed:p.renewed?"Yes":"",Notes:p.notes}));
+const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Policies");XLSX.writeFile(wb,`policies-${todayISO()}.xlsx`)}
+$("xf").onchange=e=>{const f=e.target.files[0];if(!f||typeof XLSX==="undefined")return;const r=new FileReader();r.onload=()=>{try{
+const wb=XLSX.read(r.result,{type:"array",cellDates:true}),js=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{raw:false});
+const imp=js.map(x=>{let d=String(x.ExpiryAD||"").trim();if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(d)){const [m,dd,y]=d.split("/");d=`${y}-${m.padStart(2,"0")}-${dd.padStart(2,"0")}`}
+return{id:x.ID||"p"+Date.now()+Math.random().toString(36).slice(2,6),holder:x.Holder||"",pno:String(x.PolicyNo||""),company:x.Company||"",type:x.Type||"Other",premium:x.Premium||"",phone:x.Phone||"",expiry:d,status:x.Status==="expired"?"expired":"active",renewed:x.Renewed==="Yes",notes:x.Notes||""}}).filter(p=>p.holder&&p.pno&&okD(p.expiry));
+if(!imp.length){alert("No valid rows (need Holder, Policy No and ExpiryAD as YYYY-MM-DD)");return}
+if(confirm(`Import ${imp.length} policies? OK = merge/update by ID, Cancel = abort.`)){imp.forEach(n=>{const i=P.findIndex(p=>p.id===n.id);i>=0?P[i]=n:P.push(n)});persist();toast("Excel import complete","w2")}}catch(x){alert("Could not read Excel file")}};r.readAsArrayBuffer(f);e.target.value=""};
+function openCal(){$("cj").value=JSON.stringify(CAL,null,1).replace(/\n\s+(\d+)/g,"$1").replace(/,\s*(?=\d)/g,",");$("co2").classList.add("on")}
+function saveCal(){try{const c=JSON.parse($("cj").value);if(!okCal(c))throw 0;CAL=c;sv("pr_cal",CAL);initSel();closeM("co2");toast("Calendar saved","w2")}catch(e){alert("Invalid: each year needs 12 numbers (29–32)")}}
+function resetCal(){if(confirm("Reset to default 2080–2090?")){CAL=DEF;sv("pr_cal",CAL);openCal();initSel()}}
+initSel();render();alertCycle(true);
+setInterval(()=>alertCycle(false),30000);setInterval(render,60000);
+</script></body></html>

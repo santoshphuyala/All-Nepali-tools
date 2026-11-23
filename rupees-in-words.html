@@ -39,6 +39,7 @@ th{color:var(--mut);font-weight:500;width:38%}
 .scale li{margin:2px 0}
 details summary{cursor:pointer;font-weight:600}
 footer{text-align:center;color:var(--mut);font-size:.85rem;padding:14px 0 6px}
+@media(max-width:560px){main{padding:12px}h1{font-size:1.2rem}table{font-size:.88rem}th{width:34%}}
 </style>
 </head>
 <body>
@@ -227,7 +228,7 @@ function render(){
  }
  if(wrap){en.push('Only');ne.push('मात्र')}
  const rs=rupees.toString(),nep=fmtNep(rs),intl=fmtIntl(rs);
- const pz=ps?'.'+String(ps).padStart(2,'0').replace(/0$/,''):'';
+ const pz=ps?'.'+String(ps).padStart(2,'0'):'';
  set(caseEN(en.join(' ')),ne.join(' '),nep+pz,toDev(nep+pz),intl+pz,wordsIntl(rupees));
 }
 ['input','change'].forEach(e=>{$('amt').addEventListener(e,render)});

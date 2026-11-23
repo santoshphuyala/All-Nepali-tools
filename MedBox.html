@@ -55,6 +55,7 @@ dialog img{max-width:100%;border-radius:10px}
 #toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:14px;z-index:20;display:none}
 @media print{header .nopr,nav,.row,button,#toast{display:none!important}body{background:#fff;color:#000}.card{break-inside:avoid;border-color:#999}}
 .bk{display:block;font-size:13px;font-weight:600;color:var(--tl);text-decoration:none}.bk:hover{text-decoration:underline}
+@media(max-width:560px){header{padding:12px}h1{font-size:19px}main{padding:12px}.big{font-size:28px}#toast{max-width:90vw}}
 </style>
 </head>
 <body>
@@ -71,7 +72,7 @@ const iso=d=>{const z=new Date(d);return z.getFullYear()+'-'+String(z.getMonth()
 const today=()=>iso(new Date());
 const addD=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d};
 const fmt=d=>new Date(d).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
-const rs=n=>'Rs '+(+n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+const rs=n=>'Rs '+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
 const COL=['#0e7c7b','#b5446e','#6b5bd6','#c2630a','#2f7d32','#3a6ea5'];
 let S={people:[],meds:[],exp:[],rx:[]},tab='today',who='all',db;
 const TABS=[['today','Today'],['meds','Meds'],['fc','Forecast'],['exp','Spend'],['rx','Rx'],['ppl','People']];
@@ -156,9 +157,9 @@ d.oncancel=()=>{snz[m.id]=1};d.showModal();$('#q1').onclick=()=>refill(m);$('#q2
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 const toBlob=u=>{const [h,b]=u.split(','),t=atob(b),a=new Uint8Array(t.length);for(let i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return new Blob([a],{type:(h.match(/:(.*?);/)||[])[1]||''})};
 const clr=n=>req(db.transaction(n,'readwrite').objectStore(n).clear());
-function plainSave(name,data){const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('Backup downloaded')}
+function plainSave(name,data){const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);bkMark();toast('Backup downloaded')}
 async function saveFile(name,data){let d=null;try{d=window.claude?await claude.use('downloads'):null}catch(e){}if(!d)return plainSave(name,data);
-try{await d.save({filename:name,data});toast('Backup saved')}catch(e){if(!e||e.code!=='declined')toast('Could not save the file')}}
+try{await d.save({filename:name,data});bkMark();toast('Backup saved')}catch(e){if(!e||e.code!=='declined')toast('Could not save the file')}}
 async function exportJSON(){const rx=[];for(const {blob,...o} of S.rx)rx.push({...o,data:await b64(blob)});
 saveFile('medbox-backup-'+today()+'.json',JSON.stringify({app:'medbox',v:2,people:S.people,meds:S.meds,exp:S.exp,rx}))}
 function exportXLS(){if(!window.XLSX)return toast('The Excel library did not load');
@@ -169,19 +170,20 @@ add('Expenses',S.exp.map(x=>({Date:x.date,Amount:x.amount,Person:pn(x.person),It
 add('Prescriptions',S.rx.map(x=>({Title:x.title,Person:pn(x.person),Date:x.date||'',Doctor:x.doctor||'',File:x.fname})));
 saveFile('medbox-backup-'+today()+'.xlsx',XLSX.write(wb,{bookType:'xlsx',type:'array'}))}
 function restore(f){const x=f.name.toLowerCase().endsWith('.xlsx');
-ask(x?'Add records from this Excel file?':'Replace all data with this backup?',[],{},async()=>{try{
+ask(x?'Add records from this Excel file?':'Replace all data with this backup?',[],{},async()=>{let add=0,skip=0;try{
 if(!x){const j=JSON.parse(await f.text());if(j.app!=='medbox')throw 0;
 for(const n of['people','meds','exp','rx'])await clr(n);
 for(const n of['people','meds','exp'])for(const o of j[n]||[])await put(n,o);
 for(const o of j.rx||[]){const {data,...r}=o;await put('rx',{...r,blob:toBlob(data)})}}
 else{const wb=XLSX.read(await f.arrayBuffer()),rows=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n]):[],ids={};
 for(const p of S.people)ids[p.name]=p.id;
+const mk=m=>[m.name,m.person,m.dose||'',m.start||''].join('|').toLowerCase(),ek=e=>[e.date,e.amount,e.person,e.med||'',e.note||''].join('|').toLowerCase(),seenM=new Set(S.meds.map(mk)),seenE=new Set(S.exp.map(ek));
 const pid=async n=>{n=String(n||'Me');return ids[n]||(ids[n]=(await put('people',{name:n})).id)};
 for(const r of rows('People'))if(r.Name)await pid(r.Name);
 for(const r of rows('Medicines')){if(!r.Name)continue;const sl=String(r.DoseTimes||'m').split(',').filter(k=>SL.some(z=>z[0]===k));
-await put('meds',{name:String(r.Name),person:await pid(r.Person),dose:r.Strength||'',qty:+r.UnitsPerDose||1,slots:sl.length?sl:['m'],times:sl.length||1,note:r.Instructions||'',stock:+r.StockNow||0,sd:Date.now(),start:String(r.Start||today()),days:+r.CourseDays||null,done:r.Finished==='yes'})}
-for(const r of rows('Expenses'))if(r.Amount)await put('exp',{date:String(r.Date||today()),amount:+r.Amount,person:await pid(r.Person),med:r.Item||'',note:r.Note||''})}
-toast('Restore complete')}catch(e){toast('That file could not be read')}await load();if(!S.people.length){await put('people',{name:'Me',rel:'Self'});await load()}render()},'Restore')}
+{const o={name:String(r.Name),person:await pid(r.Person),dose:r.Strength||'',qty:+r.UnitsPerDose||1,slots:sl.length?sl:['m'],times:sl.length||1,note:r.Instructions||'',stock:+r.StockNow||0,sd:Date.now(),start:String(r.Start||today()),days:+r.CourseDays||null,done:r.Finished==='yes'};const k=mk(o);if(seenM.has(k)){skip++;continue}seenM.add(k);await put('meds',o);add++}}
+for(const r of rows('Expenses'))if(r.Amount){const o={date:String(r.Date||today()),amount:+r.Amount,person:await pid(r.Person),med:r.Item||'',note:r.Note||''},k=ek(o);if(seenE.has(k)){skip++;continue}seenE.add(k);await put('exp',o);add++}}
+toast(x?`Restore complete: ${add} added, ${skip} duplicate(s) skipped`:'Restore complete')}catch(e){toast('That file could not be read')}await load();if(!S.people.length){await put('people',{name:'Me',rel:'Self'});await load()}render()},'Restore')}
 
 /* views */
 function medCard(m){const s=status(m),l=ld(m),end=m.days?new Date(new Date(m.start).getTime()+m.days*864e5):null,sl=slotsOf(m).map(k=>SL.find(z=>z[0]===k)[1]).join(', ');
@@ -233,8 +235,10 @@ document.addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;ren
 $('#rf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)restore(f)};
 (async()=>{try{db=await open();await load();if(!S.people.length){await put('people',{name:'Me',rel:'Self'});await load()}
 for(const m of S.meds)if(!m.sd){m.sd=Date.now();await put('meds',m)}
-render();notify();due()}
+render();notify();due();npNag('medbox',S.meds.length>=1,()=>{tab='ppl';render()})}
 catch(err){$('#v').innerHTML='<div class="empty">Storage is unavailable in this browser, so MedBox cannot save data.</div>'}})();
+function bkMark(){try{localStorage.setItem('np-bk-medbox',String(Date.now()))}catch(e){}}
+function npNag(id,has,act,legacy){try{if(!has||sessionStorage.getItem('np-nag-'+id))return;const t=+localStorage.getItem('np-bk-'+id)||(legacy?Date.parse(legacy):0)||0,age=t?Math.floor((Date.now()-t)/864e5):null;if(age!==null&&age<14)return;const d=document.createElement('div');d.setAttribute('role','status');d.style.cssText='background:#fff3cd;color:#664d03;border:1px solid #e0c36a;border-radius:10px;padding:8px 12px;margin:8px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';const s=document.createElement('span');s.style.flex='1 1 220px';s.textContent=(age===null?'No backup yet. ':'Last backup '+age+' days ago. ')+'Your data is stored only in this browser; clearing site data erases it.';const b=document.createElement('button'),x=document.createElement('button');b.textContent='Back up now';x.textContent='Later';b.onclick=()=>{d.remove();act()};x.onclick=()=>{try{sessionStorage.setItem('np-nag-'+id,'1')}catch(e){}d.remove()};d.append(s,b,x);document.body.prepend(d)}catch(e){}}
 </script>
 </body>
 </html>

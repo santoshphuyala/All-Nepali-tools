@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nepali Calendar (BS 2000–2090)</title>
+<style>
+:root{--bg:#fbf8f3;--sf:#fff;--tx:#1d1b18;--mu:#6f6a62;--bd:#e4ddd2;--rd:#c4262e;--ac:#1f4e8c;--tdy:#fde9b8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150f;--sf:#221f18;--tx:#f1ece2;--mu:#a49d8f;--bd:#3a352a;--rd:#ff6b70;--ac:#7fb0f0;--tdy:#5b4a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17150f;--sf:#221f18;--tx:#f1ece2;--mu:#a49d8f;--bd:#3a352a;--rd:#ff6b70;--ac:#7fb0f0;--tdy:#5b4a14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:12px}
+h1{font-size:18px;margin:4px 0 10px}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+button,select,input{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:7px 10px}
+button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grow{flex:1;min-width:0}
+.title{text-align:center;margin:6px 0 2px;font-size:20px;font-weight:700}
+.sub{text-align:center;color:var(--mu);font-size:13px;margin-bottom:8px}
+.g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.wd{text-align:center;font-size:12px;color:var(--mu);padding:4px 0}
+.wd:first-child,.wd:last-child{color:var(--rd)}
+.c{background:var(--sf);border:1px solid var(--bd);border-radius:8px;min-height:58px;padding:4px;display:flex;flex-direction:column;cursor:pointer;overflow:hidden}
+.c{position:relative}.c.e{visibility:hidden}.nd{position:absolute;top:3px;right:5px;font-size:9px;color:var(--ac)}textarea{width:100%;margin-top:8px;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px}
+.c b{font-size:17px;line-height:1.1}.c small{color:var(--mu);font-size:11px}
+.c.sat b,.c.sun b,.c.hol b{color:var(--rd)}
+.c.hol{border-color:var(--rd)}
+.c.t{background:var(--tdy)}.c.s{outline:2px solid var(--ac)}
+.c i{font-style:normal;font-size:9px;color:var(--rd);line-height:1.1;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-top:10px}
+.card h2{font-size:15px;margin:0 0 6px}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:5px 0;border-bottom:1px dashed var(--bd)}
+li span{flex:1}li em{color:var(--mu);font-style:normal;font-size:12px}
+.x{padding:2px 8px;color:var(--rd)}
+.note{color:var(--mu);font-size:12px;margin-top:6px}
+input[type=number]{width:70px}
+.nd{top:4px;right:4px;display:flex;gap:2px;font-size:0}.nd s{width:6px;height:6px;border-radius:50%;display:block}
+.fl{border:1px solid var(--bd);border-radius:8px;padding:7px 10px;cursor:pointer;background:var(--sf)}
+.dn{text-decoration:line-through;color:var(--mu)}h3{font-size:13px;margin:10px 0 2px;color:var(--mu)}.sum{font-weight:600;margin-top:4px}
+li label{flex:1;display:flex;gap:6px;align-items:center}
+[hidden]{display:none!important}.mi{display:flex;flex-direction:column;font-size:12px;color:var(--mu);gap:2px}.mi input{width:100%}
+.bk{display:inline-block;margin:0 0 8px;color:var(--ac);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+@media(max-width:560px){.c{min-height:48px;padding:3px}.c b{font-size:15px}.wd{font-size:10px}#sg{grid-template-columns:repeat(2,1fr)!important}}
+</style></head><body><main>
+<a class="bk" href="index.html">← All tools</a>
+<h1>नेपाली पात्रो · Nepali Calendar</h1>
+<div class="row">
+ <button id="pv">‹</button>
+ <select id="ms" class="grow"></select>
+ <select id="ys"></select>
+ <button id="nx">›</button>
+</div>
+<div class="row">
+ <button id="td" class="p">Today</button>
+ <button id="lg">नेपाली / EN</button>
+ <button id="nm">१२३ / 123</button><button id="gear">⚙ Settings</button>
+</div>
+<div class="title" id="ti"></div><div class="sub" id="su"></div><div class="sub" id="sm" style="color:var(--ac)"></div>
+<div class="g" id="wh"></div><div class="g" id="gr"></div>
+<div class="card" id="info"></div>
+<div class="card"><h2>Pending reminder tasks</h2><ul id="upl"></ul></div>
+<div class="card"><h2 id="hh"></h2><ul id="hl"></ul>
+ <div class="row" style="margin-top:8px">
+  <select id="hm"></select><input id="hd" type="number" min="1" max="32" placeholder="Day">
+  <input id="ha" type="date" title="Or pick an English date">
+  <input id="hn" class="grow" placeholder="Holiday name">
+  <button id="hadd" class="p">Add</button>
+ </div>
+ <div class="row"><button id="hrs">Reset this year to defaults</button></div>
+ <div class="note">Defaults cover fixed-date holidays only. Moon-based festivals (Dashain, Tihar, Holi, Buddha Jayanti, Teej…) change every year: add them from the government notice. If you pick an English date, it is used instead of the BS month/day.</div>
+</div>
+<div class="card"><h2>Date converter</h2>
+ <div class="row"><input id="cv" type="date"><span id="co" class="grow"></span></div></div>
+<div class="card"><h2>Backup · Import / Export</h2>
+ <div class="row"><button id="xj">Export JSON</button><button id="xx">Export Excel</button></div>
+ <div class="row"><label class="fl">Import JSON<input id="ij" type="file" accept=".json,application/json" hidden></label><label class="fl">Import Excel<input id="ix" type="file" accept=".xlsx,.xls" hidden></label><button id="xd" class="x">Delete all data</button></div>
+ <div class="note">Imports are merged with existing data (duplicates skipped). In Excel files keep BS dates as text like 2083-02-15, and keep the sheet and column names from an export.</div></div>
+
+<div class="note">Built-in data: BS 2000–2090 (AD 1943–2034). BS 2000 Baisakh 1 = 14 April 1943. Saturday and Sunday are marked as weekend holidays. Tap any date to add income, expense, reminder tasks, notes or shopping items (coloured dots show what a date holds). Data is stored in this browser’s IndexedDB; use Export to back up. Please verify against the official Nepal government calendar.</div>
+<div id="sp" hidden>
+ <div class="card"><h2>Settings · Month lengths</h2>
+  <div class="row"><button id="sb">‹ Back</button><select id="sy" class="grow"></select></div>
+  <div class="row" id="sq"></div>
+  <div class="g" id="sg" style="grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px"></div>
+  <div class="sub" id="st" style="margin-top:8px"></div>
+  <div class="row"><button id="ssv" class="p">Save year</button><button id="srs">Reset to built-in</button></div>
+  <div class="note">Set the number of days (28–32) of each BS month. Quick buttons: 2082, 2083, 2084 and any year you have edited (✎). Saved values are stored in this browser and can be changed again at any time. Dates of later years shift if a year’s total changes.</div></div>
+ <div class="card"><h2>Today</h2><div id="sd"></div></div>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const S="243432221213 334333212122 334432212122 343432221123 243432221213 334333212122 334432212122 343432221123 333433122113 334333212122 334432212122 343432221123 333433122122 334333212122 334432212122 343432221123 333433122122 334333212122 343432212122 343432221213 333433212122 334333212122 343432221122 343432221213 333433212122 334333212122 343432221123 243432221213 334333212122 334342212122 343432221123 243432221213 334333212122 334432212122 343432221123 243433122113 334333212122 334432212122 343432221123 333433122122 334333212122 334432212122 343432221123 333433122122 334333212122 343432212122 343432221123 333433212122 334333212122 343432221122 343432221213 333433212122 334333212122 343432221122 343432221213 334333212122 334342212122 343432221123 243432221213 334333212122 334432212122 343432221123 243433121213 334333212122 334432212122 343432221123 333433122113 334333212122 334432212122 343432221123 333433122122 334333212122 343432212122 343432221123 333433212122 334333212122 343432221122 343432221213 333433212122 334333212122 343432221122 334432221222 243432221222 334332221222 334332221222 343423221222 243432221222 334333221222 234423221222 243432221222 243432221222".split(" ");
+const Y0=2000,Y1=Y0+S.length-1,BASE=Date.UTC(1943,3,14),DAY=864e5;
+const MN=[["Baisakh","बैशाख"],["Jestha","जेठ"],["Ashadh","असार"],["Shrawan","श्रावण"],["Bhadra","भाद्र"],["Ashwin","आश्विन"],["Kartik","कार्तिक"],["Mangsir","मंसिर"],["Poush","पौष"],["Magh","माघ"],["Falgun","फाल्गुन"],["Chaitra","चैत्र"]];
+const WD=[["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],["आइत","सोम","मंगल","बुध","बिहि","शुक्र","शनि"]];
+const AM=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const $=id=>document.getElementById(id);
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{if(k==="npc_hol"||k==="npc_len"){if(DB)kvPut(k,v);else try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}return}try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let OV=ld("npc_len",{}),H=ld("npc_hol",{}),np=ld("npc_np",false),dg=ld("npc_dg",false),IT=[],DB=null;
+const PRE={2083:[31,31,32,31,31,31,30,29,30,29,30,30]};
+const def=y=>PRE[y]||[...S[y-Y0]].map(c=>+c+28);
+const lens=y=>OV[y]||def(y);
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function ys(y){let t=BASE;for(let i=Y0;i<y;i++)t+=sum(lens(i))*DAY;return t}
+function bs2ad(y,m,d){return ys(y)+(sum(lens(y).slice(0,m-1))+d-1)*DAY}
+function ad2bs(ts){let r=Math.round((ts-BASE)/DAY);if(r<0)return null;
+ for(let y=Y0;y<=Y1;y++){const L=lens(y),n=sum(L);if(r<n){for(let m=0;m<12;m++){if(r<L[m])return[y,m+1,r+1];r-=L[m]}}r-=n}return null}
+const NP="०१२३४५६७८९";
+const n=x=>dg?String(x).replace(/\d/g,c=>NP[c]):String(x);
+const L=()=>np?1:0;
+const defs=y=>{const h=[[1,1,"Nepali New Year"],[2,15,"Republic Day"],[6,3,"Constitution Day"],[10,1,"Maghe Sankranti"],[11,7,"Prajatantra Diwas"]].map(([m,d,t])=>({m,d,n:t}));
+ const b=ad2bs(Date.UTC(y-57,4,1));if(b&&b[0]===y)h.push({m:b[1],d:b[2],n:"Labour Day"});return h};
+const gh=y=>H[y]||defs(y);
+const calcToday=()=>{const t=new Date();return ad2bs(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()))||[Y0,1,1]};
+let today=calcToday();
+let Y=today[0],M=today[1],SEL=today;
+function hmap(y){const o={};gh(y).forEach(h=>{(o[h.m*100+h.d]=o[h.m*100+h.d]||[]).push(h.n)});return o}
+function render(){today=calcToday();reidx();
+ const Ls=lens(Y),len=Ls[M-1],st=bs2ad(Y,M,1),w=new Date(st).getUTCDay(),hm=hmap(Y);
+ $("ti").textContent=MN[M-1][L()]+" "+n(Y);
+ const e=new Date(st+(len-1)*DAY),s=new Date(st);
+ $("su").textContent=AM[s.getUTCMonth()]+" "+s.getUTCFullYear()+(s.getUTCMonth()!==e.getUTCMonth()?" – "+AM[e.getUTCMonth()]+" "+e.getUTCFullYear():"");
+ monthSum();$("wh").innerHTML=WD[L()].map(x=>`<div class="wd">${x}</div>`).join("");
+ let h="";for(let i=0;i<w;i++)h+='<div class="c e"></div>';
+ for(let d=1;d<=len;d++){const dt=new Date(st+(d-1)*DAY),a=dt.getUTCDate(),dow=(w+d-1)%7,hn=hm[M*100+d];
+  const cl=["c",dow===6?"sat":dow===0?"sun":"",hn?"hol":"",(Y===today[0]&&M===today[1]&&d===today[2])?"t":"",(SEL[0]===Y&&SEL[1]===M&&SEL[2]===d)?"s":""].join(" ");
+  h+=`<div class="${cl}" data-d="${d}"><b>${n(d)}</b><small>${a===1?AM[dt.getUTCMonth()]+" 1":a}</small>${dots(Y,M,d)}${hn?`<i>${hn[0]}</i>`:(dow===0||dow===6)?`<i>${np?"बिदा":"Holiday"}</i>`:""}</div>`}
+ $("gr").innerHTML=h;
+ $("ms").value=M;$("ys").value=Y;
+ info();hol();up();
+}
+function hol(){$("hh").textContent="Holidays in BS "+n(Y);
+ const a=gh(Y).map((h,i)=>({...h,i})).sort((p,q)=>p.m*100+p.d-q.m*100-q.d);
+ $("hl").innerHTML=a.length?a.map(h=>{const t=new Date(bs2ad(Y,h.m,Math.min(h.d,lens(Y)[h.m-1])));
+  return`<li><span>${n(h.d)} ${MN[h.m-1][L()]} · ${h.n}</span><em>${t.getUTCDate()} ${AM[t.getUTCMonth()]}</em><button class="x" data-i="${h.i}">✕</button></li>`}).join(""):"<li><span>No holidays yet</span></li>"}
+function edit(f){const cur=gh(Y).map(h=>({...h}));H[Y]=f(cur);sv("npc_hol",H);render()}
+$("hl").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined)edit(c=>c.filter((_,k)=>k!=i))};
+$("hadd").onclick=()=>{const nm=$("hn").value.trim();if(!nm)return;let y=Y,m=+$("hm").value,d=+$("hd").value;
+ if($("ha").value){const p=$("ha").value.split("-").map(Number),b=ad2bs(Date.UTC(p[0],p[1]-1,p[2]));if(!b){alert("Date outside supported range");return}[y,m,d]=b}
+ else if(!d||d<1||d>lens(Y)[m-1]){alert("Enter a valid day (1–"+lens(Y)[m-1]+")");return}
+ const keep=Y;Y=y;edit(c=>[...c,{m,d,n:nm}]);$("hn").value=$("hd").value=$("ha").value="";Y=keep;render()};
+$("hrs").onclick=()=>{delete H[Y];sv("npc_hol",H);render()};
+$("gr").onclick=e=>{const c=e.target.closest(".c");if(c&&c.dataset.d){SEL=[Y,M,+c.dataset.d];render()}};
+/* ===== Storage (IndexedDB) + day planner ===== */
+const pad=n=>String(n).padStart(2,"0"),dk=(y,m,d)=>y*10000+m*100+d;
+const bsStr=k=>Math.floor(k/10000)+"-"+pad(Math.floor(k/100)%100)+"-"+pad(k%100);
+const adStr=k=>{const t=new Date(bs2ad(Math.floor(k/10000),Math.floor(k/100)%100,k%100));return t.getUTCFullYear()+"-"+pad(t.getUTCMonth()+1)+"-"+pad(t.getUTCDate())};
+const parseBs=s=>{const p=String(s).trim().split(/[-\/.]/).map(Number);return p.length===3&&p.every(x=>x>0)&&p[0]>=Y0&&p[0]<=Y1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=lens(p[0])[p[1]-1]?dk(p[0],p[1],p[2]):null};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rs=x=>"रू "+n(Number(x).toLocaleString("en-IN",{maximumFractionDigits:2}));
+const rq=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+function openDb(){return new Promise((ok,no)=>{const q=indexedDB.open("npcal",1);q.onupgradeneeded=()=>{const d=q.result;d.createObjectStore("items",{keyPath:"id",autoIncrement:true}).createIndex("date","date");d.createObjectStore("kv",{keyPath:"k"})};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}
+const tx=(s,m="readwrite")=>DB.transaction(s,m).objectStore(s);
+const kvPut=(k,v)=>{if(DB)tx("kv").put({k,v})};
+const putIt=o=>{if(DB)tx("items").put(o)};
+async function addItem(o){if(DB)o.id=await rq(tx("items").add(o));else o.id=Date.now()+Math.random();IT.push(o);return o}
+let BD={},LT="income";
+function reidx(){BD={};IT.forEach(i=>(BD[i.date]=BD[i.date]||[]).push(i))}
+async function init(){
+ try{DB=await openDb();
+  const kv=await rq(tx("kv","readonly").getAll());
+  kv.forEach(e=>{if(e.k==="npc_hol")H=e.v;if(e.k==="npc_len")OV=e.v});
+  if(!kv.some(e=>e.k==="npc_hol")&&Object.keys(H).length)kvPut("npc_hol",H);
+  if(!kv.some(e=>e.k==="npc_len")&&Object.keys(OV).length)kvPut("npc_len",OV);
+  IT=await rq(tx("items","readonly").getAll());
+  const old=ld("npc_notes",{});
+  for(const k in old){const k2=parseBs(k);if(k2)await addItem({date:k2,type:"note",text:old[k]})}
+  if(Object.keys(old).length)try{localStorage.removeItem("npc_notes")}catch(e){}
+ }catch(e){DB=null;alert("IndexedDB is not available in this browser; data will not be saved.")}}
+const IC={txn:"#2e9e5b",task:"#e0a020",note:"#3a7bd5",shop:"#9b59b6"};
+function dots(y,m,d){const t=new Set((BD[dk(y,m,d)]||[]).map(i=>i.type));return t.size?`<span class="nd">${[...t].map(x=>`<s style="background:${IC[x]}"></s>`).join("")}</span>`:""}
+function monthSum(){let a=0,b=0;for(let d=1;d<=lens(Y)[M-1];d++)(BD[dk(Y,M,d)]||[]).forEach(i=>{if(i.type==="txn")i.kind==="income"?a+=i.amount:b+=i.amount});$("sm").textContent=(a||b)?`Income ${rs(a)} · Expense ${rs(b)} · Balance ${rs(a-b)}`:""}
+function info(){const[y,m,d]=SEL,k=dk(y,m,d),t=new Date(bs2ad(y,m,d)),hn=hmap(y)[m*100+d]||[],dow=t.getUTCDay(),its=BD[k]||[];
+ const inc=sum(its.filter(i=>i.kind==="income").map(i=>i.amount)),ex=sum(its.filter(i=>i.kind==="expense").map(i=>i.amount));
+ const row=i=>{const x=`<button class="x" data-del="${i.id}">✕</button>`;
+  if(i.type==="txn")return`<li><span style="color:${i.kind==="income"?"#2e9e5b":"var(--rd)"}">${i.kind==="income"?"+":"−"} ${rs(i.amount)}${i.text?" · "+esc(i.text):""}</span>${x}</li>`;
+  if(i.type==="note")return`<li><span>${esc(i.text)}</span>${x}</li>`;
+  return`<li><label class="${i.done?"dn":""}"><input type="checkbox" data-tg="${i.id}" ${i.done?"checked":""}> ${i.time?n(i.time)+" ":""}${esc(i.text)}</label>${x}</li>`};
+ const sec=(ty,tt)=>{const a=its.filter(i=>i.type===ty);return a.length?`<h3>${tt}</h3><ul>${a.map(row).join("")}</ul>`:""};
+ $("info").innerHTML=`<h2>${n(d)} ${MN[m-1][L()]} ${n(y)} BS</h2><div>${WD[0][dow]}, ${t.getUTCDate()} ${AM[t.getUTCMonth()]} ${t.getUTCFullYear()} AD</div>`+
+ (hn.length?`<div style="color:var(--rd);font-weight:600">${hn.map(esc).join(" · ")}</div>`:"")+
+ (dow===6||dow===0?`<div style="color:var(--rd)">Weekend holiday (${dow?"Saturday":"Sunday"})</div>`:"")+
+ (inc||ex?`<div class="sum">Income ${rs(inc)} · Expense ${rs(ex)} · Balance ${rs(inc-ex)}</div>`:"")+
+ sec("txn","Income / Expense")+sec("task","Reminder tasks")+sec("note","Notes")+sec("shop","Shopping list")+
+ `<div class="row" style="margin-top:10px"><select id="ty"><option value="income">Income</option><option value="expense">Expense</option><option value="task">Reminder task</option><option value="note">Note</option><option value="shop">Shopping item</option></select><input id="at" type="number" step="any" min="0" placeholder="Amount"><input id="tm" type="time"></div><div class="row"><input id="tx" class="grow" placeholder="Description"><button id="ad" class="p">Add</button></div>`;
+ $("ty").value=LT;tyUi()}
+function tyUi(){const v=$("ty").value;$("at").style.display=(v==="income"||v==="expense")?"":"none";$("tm").style.display=v==="task"?"":"none"}
+$("info").onchange=e=>{const t=e.target;if(t.id==="ty"){LT=t.value;tyUi()}else if(t.dataset.tg){const it=IT.find(i=>i.id===+t.dataset.tg);if(it){it.done=t.checked;putIt(it);render()}}};
+$("info").onclick=async e=>{const t=e.target;
+ if(t.dataset.del){const id=+t.dataset.del;IT=IT.filter(i=>i.id!==id);if(DB)tx("items").delete(id);render()}
+ else if(t.id==="ad"){const ty=$("ty").value,v=$("tx").value.trim(),a=parseFloat($("at").value),k=dk(...SEL);let o;
+  if(ty==="income"||ty==="expense"){if(!(a>0)){alert("Enter an amount");return}o={date:k,type:"txn",kind:ty,amount:a,text:v}}
+  else{if(!v)return;o={date:k,type:ty,text:v};
+   if(ty==="task"){o.time=$("tm").value;o.done=false;if(o.time&&window.Notification&&Notification.permission==="default")Notification.requestPermission()}
+   if(ty==="shop")o.done=false}
+  await addItem(o);render()}};
+function up(){const tk=dk(...today),a=IT.filter(i=>i.type==="task"&&!i.done).sort((p,q)=>p.date-q.date||(p.time||"").localeCompare(q.time||"")).slice(0,12);
+ $("upl").innerHTML=a.length?a.map(i=>`<li data-go="${i.date}" style="cursor:pointer"><span style="${i.date<tk?"color:var(--rd)":""}">${n(bsStr(i.date))} ${i.time?n(i.time):""} · ${esc(i.text)}</span></li>`).join(""):"<li><span>No pending tasks</span></li>"}
+$("upl").onclick=e=>{const li=e.target.closest("li");if(li&&li.dataset.go){const k=+li.dataset.go;Y=Math.floor(k/10000);M=Math.floor(k/100)%100;SEL=[Y,M,k%100];render()}};
+const NF=new Set();
+function tick(){setInterval(()=>{if(!window.Notification||Notification.permission!=="granted")return;const t=new Date(),b=ad2bs(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()));if(!b)return;const k=dk(...b),hm=pad(t.getHours())+":"+pad(t.getMinutes());
+ IT.forEach(i=>{if(i.type==="task"&&!i.done&&i.date===k&&i.time===hm&&!NF.has(i.id)){NF.add(i.id);new Notification("Reminder",{body:i.text})}})},20000)}
+/* ===== Import / export ===== */
+let DLC=null;try{window.claude&&claude.use("downloads").then(x=>{DLC=x}).catch(()=>{})}catch(e){}
+async function dl(name,blob){if(DLC){try{await DLC.save({filename:name,data:blob})}catch(e){if(!e||e.code!=="declined")alert("Could not save the file")}return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+const sig=i=>[i.date,i.type,i.kind||"",i.amount||"",i.text,i.time||""].join("|");
+async function merge(items){const have=new Set(IT.map(sig));let c=0;
+ for(const x of items){if(!x||!Number.isInteger(x.date)||parseBs(bsStr(x.date))===null||!IC[x.type])continue;
+  const o={date:x.date,type:x.type,text:String(x.text||"")};
+  if(x.type==="txn"){o.kind=x.kind==="income"?"income":"expense";o.amount=+x.amount;if(!(o.amount>0))continue}
+  if(x.type==="task")o.time=String(x.time||"");
+  if(x.type==="task"||x.type==="shop")o.done=!!x.done;
+  if(have.has(sig(o)))continue;await addItem(o);have.add(sig(o));c++}
+ return c}
+$("xj").onclick=()=>dl("nepali-calendar-backup.json",new Blob([JSON.stringify({app:"npcal",version:1,items:IT,holidays:H,lengths:OV},null,1)],{type:"application/json"}));
+$("ij").onchange=async e=>{const f=e.target.files[0];if(!f)return;
+ try{const j=JSON.parse(await f.text()),c=await merge(Array.isArray(j.items)?j.items:[]);
+  if(j.holidays&&typeof j.holidays==="object"){H={...H,...j.holidays};sv("npc_hol",H)}
+  if(j.lengths&&typeof j.lengths==="object"){OV={...OV,...j.lengths};sv("npc_len",OV)}
+  alert("Imported "+c+" new items");render()}catch(x){alert("Invalid JSON file")}e.target.value=""};
+$("xx").onclick=()=>{if(!window.XLSX){alert("The Excel library did not load (internet needed). Use JSON export instead.");return}
+ const W=XLSX.utils,wb=W.book_new(),so=[...IT].sort((a,b)=>a.date-b.date),dd=i=>({"BS Date":bsStr(i.date),"AD Date":adStr(i.date)});
+ const add=(nm,ty,f)=>W.book_append_sheet(wb,W.json_to_sheet(so.filter(i=>i.type===ty).map(i=>({...dd(i),...f(i)}))),nm);
+ add("Transactions","txn",i=>({Type:i.kind,Description:i.text,Amount:i.amount}));
+ add("Tasks","task",i=>({Task:i.text,Time:i.time||"",Done:i.done?"Yes":"No"}));
+ add("Notes","note",i=>({Note:i.text}));
+ add("Shopping","shop",i=>({Item:i.text,Done:i.done?"Yes":"No"}));
+ const hs=[];Object.keys(H).forEach(y=>H[y].forEach(h=>hs.push({"BS Year":+y,Month:h.m,Day:h.d,Name:h.n})));
+ const ls=[];Object.keys(OV).forEach(y=>ls.push({Year:+y,Lengths:OV[y].join(",")}));if(ls.length)W.book_append_sheet(wb,W.json_to_sheet(ls),"Lengths");
+ W.book_append_sheet(wb,W.json_to_sheet(hs),"Holidays");dl("nepali-calendar.xlsx",new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})]))};
+$("ix").onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!window.XLSX){alert("The Excel library did not load (internet needed). Use JSON import instead.");return}
+ try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),rows=nm=>wb.Sheets[nm]?XLSX.utils.sheet_to_json(wb.Sheets[nm]):[],items=[];
+  rows("Transactions").forEach(r=>{const k=parseBs(r["BS Date"]);if(k)items.push({date:k,type:"txn",kind:String(r.Type).toLowerCase()==="income"?"income":"expense",amount:+r.Amount,text:r.Description||""})});
+  rows("Tasks").forEach(r=>{const k=parseBs(r["BS Date"]);if(k&&r.Task)items.push({date:k,type:"task",text:r.Task,time:r.Time||"",done:r.Done==="Yes"})});
+  rows("Notes").forEach(r=>{const k=parseBs(r["BS Date"]);if(k&&r.Note)items.push({date:k,type:"note",text:r.Note})});
+  rows("Shopping").forEach(r=>{const k=parseBs(r["BS Date"]);if(k&&r.Item)items.push({date:k,type:"shop",text:r.Item,done:r.Done==="Yes"})});
+  const c=await merge(items);let hc=0,lc=0;
+  rows("Lengths").forEach(r=>{const y=+r.Year,v=String(r.Lengths||"").split(",").map(x=>parseInt(x,10));if(y>=Y0&&y<=Y1&&v.length===12&&v.every(x=>x>=28&&x<=32)){OV[y]=v;lc++}});
+  if(lc)sv("npc_len",OV);
+  rows("Holidays").forEach(r=>{const y=+r["BS Year"],m=+r.Month,d=+r.Day;if(y>=Y0&&y<=Y1&&m>0&&d>0&&r.Name){if(!H[y])H[y]=defs(y);if(!H[y].some(h=>h.m===m&&h.d===d&&h.n===String(r.Name))){H[y].push({m,d,n:String(r.Name)});hc++}}});
+  if(hc)sv("npc_hol",H);alert("Imported "+c+" items, "+lc+" year lengths and "+hc+" holidays");render()}catch(x){alert("Could not read this Excel file")}e.target.value=""};
+$("xd").onclick=()=>{if(!confirm("Delete ALL transactions, tasks, notes, shopping items and custom holidays from this browser? Export a backup first."))return;
+ IT=[];H={};OV={};try{localStorage.removeItem("npc_hol");localStorage.removeItem("npc_len")}catch(e){}if(DB){tx("items").clear();tx("kv").clear()}render()};
+
+/* ===== Settings page: month lengths per year ===== */
+let SP=false,SY=today[0];
+const curSet=()=>[...document.querySelectorAll("#sg input")].map(i=>+i.value);
+function tot(){const s=sum(curSet());$("st").textContent="Total "+s+" days"+((s===365||s===366)?"":" – a BS year normally has 365 or 366 days, please check")}
+function fillSet(){const Ls=lens(SY);let o="";for(let y=Y0;y<=Y1;y++)o+=`<option value="${y}">${y}${OV[y]?" ✎":""}</option>`;
+ $("sy").innerHTML=o;$("sy").value=SY;
+ $("sg").innerHTML=MN.map((m,i)=>`<label class="mi">${m[0]}<input type="number" min="28" max="32" value="${Ls[i]}"></label>`).join("");
+ $("sq").innerHTML=[...new Set([2082,2083,2084,...Object.keys(OV).map(Number)])].sort().map(y=>`<button data-y="${y}" class="${y===SY?"p":""}">${y}${OV[y]?" ✎":""}</button>`).join("");
+ tot();today=calcToday();const t=new Date();
+ $("sd").textContent="Device date: "+t.getFullYear()+"-"+pad(t.getMonth()+1)+"-"+pad(t.getDate())+" → "+today[2]+" "+MN[today[1]-1][0]+" "+today[0]+" BS"}
+$("gear").onclick=()=>{SP=!SP;document.querySelectorAll("main>*").forEach(e=>{if(e.tagName!=="H1")e.hidden=e.id==="sp"?!SP:SP});if(SP){SY=Y;fillSet()}else render()};
+$("sb").onclick=()=>$("gear").onclick();
+$("sy").onchange=e=>{SY=+e.target.value;fillSet()};
+$("sq").onclick=e=>{if(e.target.dataset.y){SY=+e.target.dataset.y;fillSet()}};
+$("sg").oninput=tot;
+$("ssv").onclick=()=>{const v=curSet();if(v.length!==12||v.some(x=>!(x>=28&&x<=32))){alert("Each month needs 28 to 32 days");return}OV[SY]=v;sv("npc_len",OV);fillSet()};
+$("srs").onclick=()=>{delete OV[SY];sv("npc_len",OV);fillSet()};
+
+function go(d){M+=d;if(M<1){M=12;Y--}if(M>12){M=1;Y++}if(Y<Y0){Y=Y0;M=1}if(Y>Y1){Y=Y1;M=12}render()}
+$("pv").onclick=()=>go(-1);$("nx").onclick=()=>go(1);
+$("td").onclick=()=>{Y=today[0];M=today[1];SEL=today;render()};
+$("ms").onchange=e=>{M=+e.target.value;render()};$("ys").onchange=e=>{Y=+e.target.value;render()};
+$("lg").onclick=()=>{np=!np;sv("npc_np",np);fill();render()};
+$("nm").onclick=()=>{dg=!dg;sv("npc_dg",dg);fill();render()};
+$("cv").onchange=e=>{const p=e.target.value.split("-").map(Number),b=p[0]&&ad2bs(Date.UTC(p[0],p[1]-1,p[2]));
+ $("co").textContent=b?b[2]+" "+MN[b[1]-1][0]+" "+b[0]+" BS":"Out of range"};
+function fill(){const m=MN.map((x,i)=>`<option value="${i+1}">${x[L()]}</option>`).join("");$("ms").innerHTML=m;$("hm").innerHTML=m;
+ let o="";for(let y=Y0;y<=Y1;y++)o+=`<option value="${y}">${n(y)}</option>`;$("ys").innerHTML=o}
+init().then(()=>{today=calcToday();Y=today[0];M=today[1];SEL=today;fill();render();tick()});
+</script></body></html>

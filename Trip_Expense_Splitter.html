@@ -68,7 +68,7 @@ const CATS=['Lodging','Food','Transport','Entry fee','Shopping','Activities','Pe
 const TYPES={all:'Common – equal to all',some:'Specific friends – equal',personal:'Personal – one person only',ratio:'Custom ratio',amount:'Custom amounts'};
 const uid=()=>'i'+Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fm=n=>(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fm=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
 let S=(()=>{try{const j=JSON.parse(localStorage.getItem(K));if(j&&Array.isArray(j.events)&&j.events.length)return j}catch(e){}
  const id=uid();return{cur:{NPR:1,INR:1.6,USD:135},events:[{id,name:'My Trip',friends:[],expenses:[]}],sel:id,tab:'exp',disp:BASE}})();
@@ -173,8 +173,8 @@ function rBk(e){$('#main').innerHTML=`<div class="card"><h3>PDF summary</h3><p c
  $('#rst').onclick=async()=>{if(await modal('Erase ALL events, friends and expenses? This cannot be undone.')){const id=uid();S={cur:{NPR:1,INR:1.6,USD:135},events:[{id,name:'My Trip',friends:[],expenses:[]}],sel:id,tab:'exp',disp:BASE};editId=null;S=clean(S);render()}}}
 /* ---------- files ---------- */
 async function dl(name,blob){let d=null;try{d=await window.claude.use('downloads')}catch(e){}
- if(d){try{await d.save({filename:name,data:blob});return}catch(e){if(e&&e.code==='declined')return}}
- const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+ if(d){try{await d.save({filename:name,data:blob});if(/backup/i.test(name))bkMark();return}catch(e){if(e&&e.code==='declined')return}}
+ const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();if(/backup/i.test(name))bkMark();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function xl(){if(!window.XLSX)return toast('Excel library did not load');const wb=XLSX.utils.book_new(),add=(n,a)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a),n);
  add('Currencies',Object.entries(S.cur).map(([c,r])=>({Code:c,RateToNPR:r})));
  add('Events',S.events.map(e=>({EventID:e.id,Event:e.name})));
@@ -191,9 +191,15 @@ function imp(file){const rd=new FileReader();rd.onerror=()=>toast('Could not rea
   g('Friends').forEach(r=>{const e=by(r.EventID);e&&e.friends.push({id:String(r.FriendID),name:String(r.Friend)})});
   g('Expenses').forEach(r=>{const e=by(r.EventID);e&&e.expenses.push({id:String(r.ExpenseID),date:String(r.Date),desc:String(r.Description),cat:String(r.Category),payer:String(r.PaidByID),payers:r.Payers?JSON.parse(r.Payers):undefined,amount:+r.Amount,cur:String(r.Currency),rate:+r.Rate,type:String(r.SplitType),members:r.MembersID?String(r.MembersID).split(';'):[],vals:r.Values?JSON.parse(r.Values):{}})});
   if(!ev.length)throw 0;apply({cur,events:ev})}catch(e){toast('Invalid Excel backup')}};rd.readAsArrayBuffer(file)}}
-function pdf(all){if(!window.jspdf)return toast('PDF library did not load');const d=new jspdf.jsPDF({orientation:'landscape',unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110];
+/* ---------- PDF: Devanagari names are drawn as images (jsPDF has no Devanagari shaping) ---------- */
+const HAS_DV=t=>/[\u0900-\u097F]/.test(t);
+function dvImg(t,pt,bold,col){const k=3,c=document.createElement('canvas'),x=c.getContext('2d'),f=(bold?'bold ':'')+Math.round(pt*k)+'px "Noto Sans Devanagari","Nirmala UI",Mangal,sans-serif';x.font=f;const w=Math.ceil(x.measureText(t).width)+2,h=Math.ceil(pt*k*1.5);c.width=w;c.height=h;x.font=f;x.textBaseline='middle';x.fillStyle=Array.isArray(col)?`rgb(${col[0]},${col[1]},${col[2]})`:typeof col==='number'?`rgb(${col},${col},${col})`:'#000';x.fillText(t,0,h/2);return{u:c.toDataURL('image/png'),w:w/k,h:h/k}}
+function pT(d,t,x,y){if(!HAS_DV(t))return d.text(t,x,y);const pt=d.getFontSize(),i=dvImg(t,pt,false);d.addImage(i.u,'PNG',x,y-pt*.8,i.w,i.h)}
+function mkDoc(o){const d=new jspdf.jsPDF(o),orig=d.autoTable.bind(d);d.autoTable=op=>{const pc=op.didParseCell;op.didParseCell=h=>{pc&&pc(h);if(h.section==='head'||h.section==='body'||h.section==='foot'){const t=[].concat(h.cell.text).join(' ');if(HAS_DV(t)){const fs=h.cell.styles.fontSize||10,i=dvImg(t,fs,h.cell.styles.fontStyle==='bold');h.cell.dv=t;h.cell.text=['\u00A0'.repeat(Math.min(40,Math.max(1,Math.ceil(i.w/(fs*.278)))))]}}};
+ op.didDrawCell=h=>{const c=h.cell;if(!c.dv)return;const fs=c.styles.fontSize||10,i=dvImg(c.dv,fs,c.styles.fontStyle==='bold',c.styles.textColor),pl=c.padding('left'),pr=c.padding('right'),s=Math.min(1,(c.width-pl-pr)/i.w),w=i.w*s,hh=i.h*s,x=c.styles.halign==='right'?c.x+c.width-pr-w:c.x+pl;h.doc.addImage(i.u,'PNG',x,c.y+(c.height-hh)/2,w,hh)};return orig(op)};return d}
+function pdf(all){if(!window.jspdf)return toast('PDF library did not load');const d=mkDoc({orientation:'landscape',unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110];
  (all?S.events:[E()]).forEach((e,i)=>{if(i)d.addPage();const c=calc(e);
-  d.setFontSize(18);d.text(e.name,40,45);d.setFontSize(9);d.text(`All amounts in ${D} (1 ${D} = ${R} NPR)  |  Generated ${new Date().toLocaleDateString()}  |  Friends: ${e.friends.map(x=>x.name).join(', ')||'-'}`,40,62);
+  d.setFontSize(18);pT(d,e.name,40,45);d.setFontSize(9);pT(d,`All amounts in ${D} (1 ${D} = ${R} NPR)  |  Generated ${new Date().toLocaleDateString()}  |  Friends: ${e.friends.map(x=>x.name).join(', ')||'-'}`,40,62);
   d.setFontSize(12);d.text(`Total expense: ${D} ${f(c.total)}   |   Per person (avg): ${D} ${f(c.total/(e.friends.length||1))}`,40,82);
   const body=c.rows.map((r,k)=>[k+1,r.x.date,r.x.desc,r.x.cat,payLbl(r.x,e),fm(r.x.amount)+' '+r.x.cur,splitLbl(r.x,e),...e.friends.map(x=>(r.sh[x.id]?f(r.sh[x.id]):'-')+(r.pay[x.id]?'\nPAID '+f(r.pay[x.id]):''))]);
   body.push(['','','TOTAL','','','','',...e.friends.map(x=>f(c.f[x.id].share))]);
@@ -208,12 +214,12 @@ function pdf(all){if(!window.jspdf)return toast('PDF library did not load');cons
   d.text('4. Expense by category',40,y);d.autoTable({startY:y+6,head:[['Category','Amount']],body:Object.entries(cat).map(([k,v])=>[k,`${D} ${f(v)}`]),styles:{fontSize:9},headStyles:{fillColor:G},tableWidth:300})});
  dl((all?'all-events':E().name.replace(/[^\w-]+/g,'_'))+'-summary.pdf',d.output('blob'))}
 function pdfFriend(id){if(!window.jspdf)return toast('PDF library did not load');const e=E(),fl=id==='*'?e.friends:e.friends.filter(x=>x.id===id);if(!fl.length)return toast('Add friends first');
- const d=new jspdf.jsPDF({unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110],c=calc(e),st=settle(e,c);
+ const d=mkDoc({unit:'pt',format:'a4'}),D=S.disp,R=S.cur[D]||1,f=n=>fm(n/R),G=[15,118,110],c=calc(e),st=settle(e,c);
  fl.forEach((fr,i)=>{if(i)d.addPage();const t=c.f[fr.id],b=t.paid-t.share;
-  d.setFontSize(18);d.text(`${fr.name} – expense statement`,40,45);d.setFontSize(10);d.text(`${e.name}  |  Amounts in ${D} (1 ${D} = ${R} NPR)  |  ${new Date().toLocaleDateString()}`,40,62);
+  d.setFontSize(18);pT(d,`${fr.name} – expense statement`,40,45);d.setFontSize(10);pT(d,`${e.name}  |  Amounts in ${D} (1 ${D} = ${R} NPR)  |  ${new Date().toLocaleDateString()}`,40,62);
   d.autoTable({startY:75,head:[['Total paid','Own share','Net amount','Status']],body:[[f(t.paid),f(t.share),f(Math.abs(b)),Math.abs(b)<.005?'Settled':b>0?'Gets back':'Owes']],styles:{fontSize:10},headStyles:{fillColor:G}});
   const rows=c.rows.filter(r=>r.sh[fr.id]||r.pay[fr.id]),body=rows.map(r=>[r.x.date,r.x.desc,r.x.cat,payLbl(r.x,e),f(r.n),r.sh[fr.id]?f(r.sh[fr.id]):'-',r.pay[fr.id]?f(r.pay[fr.id]):'-']);
-  body.push(['','TOTAL','','','',f(t.share),f(t.paid)]);let y=d.lastAutoTable.finalY+22;d.setFontSize(12);d.text('Expenses involving '+fr.name,40,y);
+  body.push(['','TOTAL','','','',f(t.share),f(t.paid)]);let y=d.lastAutoTable.finalY+22;d.setFontSize(12);pT(d,'Expenses involving '+fr.name,40,y);
   d.autoTable({startY:y+6,head:[['Date','Description','Category','Paid by','Expense total','Own share','Paid by '+fr.name]],body,styles:{fontSize:8},headStyles:{fillColor:G},didParseCell:h=>{if(h.section==='body'&&h.row.index===body.length-1)h.cell.styles.fontStyle='bold'}});
   y=d.lastAutoTable.finalY+22;if(y>740){d.addPage();y=50}
   const mine=st.filter(s=>s.fromId===fr.id||s.toId===fr.id).map(s=>s.fromId===fr.id?['Pay '+s.to,`${D} ${f(s.amt)}`]:['Receive from '+s.from,`${D} ${f(s.amt)}`]);
@@ -236,5 +242,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('button')
  if(t.id==='evdel'){if(S.events.length<2)return toast('Keep at least one event');if(await modal(`Delete event “${e.name}” with all its expenses?`)){S.events=S.events.filter(x=>x.id!==e.id);S.sel=S.events[0].id;editId=null;render()}}});
 document.addEventListener('change',ev=>{const t=ev.target;if(t.id==='evsel'){S.sel=t.value;editId=null;render()}
  if(t.dataset.rate){const r=parseFloat(t.value);if(r>0){S.cur[t.dataset.rate]=r;save();toast('Rate updated — use “Re-apply” to update old expenses')}else{toast('Invalid rate');render()}}});
-render();
+render();npNag('trip',S.events.reduce((a,e)=>a+e.expenses.length,0)>=3,()=>{S.tab='bk';render()});
+function bkMark(){try{localStorage.setItem('np-bk-trip',String(Date.now()))}catch(e){}}
+function npNag(id,has,act,legacy){try{if(!has||sessionStorage.getItem('np-nag-'+id))return;const t=+localStorage.getItem('np-bk-'+id)||(legacy?Date.parse(legacy):0)||0,age=t?Math.floor((Date.now()-t)/864e5):null;if(age!==null&&age<14)return;const d=document.createElement('div');d.setAttribute('role','status');d.style.cssText='background:#fff3cd;color:#664d03;border:1px solid #e0c36a;border-radius:10px;padding:8px 12px;margin:8px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';const s=document.createElement('span');s.style.flex='1 1 220px';s.textContent=(age===null?'No backup yet. ':'Last backup '+age+' days ago. ')+'Your data is stored only in this browser; clearing site data erases it.';const b=document.createElement('button'),x=document.createElement('button');b.textContent='Back up now';x.textContent='Later';b.onclick=()=>{d.remove();act()};x.onclick=()=>{try{sessionStorage.setItem('np-nag-'+id,'1')}catch(e){}d.remove()};d.append(s,b,x);document.body.prepend(d)}catch(e){}}
 </script></body></html>

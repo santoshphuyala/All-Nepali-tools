@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>To-Do Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7385;--bd:#dfe3ea;--ac:#2f6fed;--rd:#d93f3f;--or:#e08a00;--gr:#2e9b5a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1e232c;--tx:#e8ebf1;--mut:#97a0b3;--bd:#323947;--ac:#6a9bff;--rd:#ff6b6b;--or:#ffb340;--gr:#4cc882;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1e232c;--tx:#e8ebf1;--mut:#97a0b3;--bd:#323947;--ac:#6a9bff;--rd:#ff6b6b;--or:#ffb340;--gr:#4cc882;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:820px;margin:0 auto;padding:12px}
+h1{font-size:20px;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 10px}
+button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.s{padding:3px 8px;font-size:13px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.row>*{flex:1 1 120px;min-width:0}
+.q{display:flex;gap:6px}.q input{flex:1}
+.hint{font-size:12px;color:var(--mut);margin:4px 0 10px}
+#alerts{display:none;background:color-mix(in srgb,var(--or) 14%,var(--card));border:1px solid var(--or);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:14px}
+#alerts b.o{color:var(--rd)}
+.t{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--bd);border-radius:10px;padding:9px 10px;margin-bottom:7px;display:flex;gap:9px;align-items:flex-start}
+.t.H{border-left-color:var(--rd)}.t.M{border-left-color:var(--or)}.t.L{border-left-color:var(--gr)}
+.t.d .tt{text-decoration:line-through;color:var(--mut)}
+.t input[type=checkbox]{margin-top:4px;width:18px;height:18px;padding:0}
+.b{flex:1;min-width:0}.tt{font-weight:600;word-break:break-word}.nt{color:var(--mut);font-size:13px;white-space:pre-wrap}
+.m{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;font-size:12px}
+.c{border:1px solid var(--bd);border-radius:20px;padding:1px 8px;color:var(--mut)}.c.r{color:var(--rd);border-color:var(--rd)}.c.w{color:var(--or);border-color:var(--or)}.c.n{color:var(--ac);border-color:var(--ac)}
+.a{display:flex;flex-direction:column;gap:4px}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);width:min(94vw,480px);padding:14px}
+dialog::backdrop{background:#0008}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
+dialog input,dialog select,dialog textarea{width:100%}
+.bs{display:none;gap:6px}.bs.on{display:flex}.bs>*{flex:1}
+#pv{font-size:12px;color:var(--ac);margin-top:3px}
+.em{text-align:center;color:var(--mut);padding:30px 0}
+.ov{overflow-x:auto}
+dialog{max-height:90vh;overflow:auto}
+.ch{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-bottom:6px}.ch b{flex:1;text-align:center}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px}
+.cw{text-align:center;font-size:11px;color:var(--mut)}
+.cd{position:relative;min-height:52px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:3px 5px;cursor:pointer;font-size:14px}
+.cd i{display:block;font-style:normal;font-size:10px;color:var(--mut)}
+.cd em{position:absolute;right:4px;bottom:3px;font-style:normal;font-size:11px;background:var(--ac);color:#fff;border-radius:10px;padding:0 6px}.cd em.o{background:var(--rd)}
+.cd.td{border-color:var(--ac)}.cd.sl{outline:2px solid var(--ac)}
+.sb{display:flex;gap:6px;align-items:center;font-size:13px;margin:2px 0;color:var(--tx)}.t .sb input[type=checkbox]{width:15px;height:15px;margin:0}.sb .dn{text-decoration:line-through;color:var(--mut)}
+.ft{text-align:center;color:var(--mut);font-size:12px;padding:16px 0 4px}
+.bk{display:inline-block;margin:0 0 8px;color:var(--ac);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+#toast{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:8px 14px;border-radius:10px;gap:10px;align-items:center;z-index:50;font-size:14px}
+#toast button{background:transparent;color:var(--bg);border-color:var(--bg)}
+.gh{font-weight:600;margin:10px 0 4px;color:var(--mut);font-size:13px}
+.tp{flex:0 0 auto!important;cursor:pointer;padding:3px 10px;color:var(--tx)}.tp b{color:var(--rd);margin-left:4px}
+#bkn{background:color-mix(in srgb,var(--ac) 12%,var(--card));border:1px solid var(--ac);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:14px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px;margin-bottom:10px}.sc{background:var(--bg);border-radius:8px;padding:8px;text-align:center}.sc b{display:block;font-size:20px}.sc span{font-size:11px;color:var(--mut)}
+.br{margin:6px 0;font-size:13px}.br i{display:block;height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.br u{display:block;height:100%;background:var(--gr);text-decoration:none}
+@media(max-width:560px){.cd{min-height:44px}.cg{gap:2px}#toast{max-width:90vw}.w{padding:10px}}
+</style></head><body><div class="w">
+<a class="bk" href="index.html">← All tools</a>
+<div class="top"><h1>To-Do Manager</h1>
+<div class="row" style="margin:0;flex:0 1 auto">
+<button id="db" class="s">📊</button><button id="vw" class="s">📅 Calendar</button><button id="bell" class="s" title="Enable notifications">🔔</button>
+<select id="bk" style="flex:0 0 auto"><option value="">Backup / restore…</option><option value="jx">Export JSON</option><option value="ji">Import JSON</option><option value="ex">Export Excel</option><option value="ei">Import Excel</option><option value="cd">Clear completed</option><option value="et">Empty trash</option><option value="ca">Clear all tasks</option><option value="au">Toggle auto-create missed</option></select>
+<button id="th" class="s">◐</button></div></div>
+<div id="alerts"></div><div id="bkn" style="display:none"></div>
+<div class="q"><select id="qc" style="flex:0 0 auto"><option>Personal</option><option>Work</option><option>Other</option></select><datalist id="tl"></datalist><input id="qi" list="tl" placeholder="Quick add: Pay internet bill !h #work @+3d *monthly" autocomplete="off"><button class="p" id="qa">Add</button></div>
+<div class="hint">Quick syntax: !h/!m/!l priority · #personal/#work/#other · @today, @tomorrow, @+5d, @2026-12-01, @bs:2083-09-15 · *weekly/*monthly/*yearly or *every3d (d/w/m/y) renewal · &gt; sub1; sub2 for subtasks · retyping a previous title copies its details · press / to focus · ~9am time · +tag · *bsmonthly</div><div id="tpl" class="row" style="margin-bottom:8px"></div>
+<div class="row"><input id="fs" type="search" placeholder="Search…" style="flex:2 1 160px">
+<select id="fst"><option value="">All status</option><option value="open">Open</option><option value="done">Done</option><option value="trash">🗑 Trash</option></select>
+<select id="fp"><option value="">All priority</option><option value="H">High</option><option value="M">Medium</option><option value="L">Low</option></select>
+<select id="fc"><option value="">All categories</option></select>
+<select id="fd"><option value="">Any due</option><option value="over">Overdue</option><option value="today">Today</option><option value="week">Next 7 days</option><option value="none">No date</option><option value="ren">Renewals</option></select>
+<select id="so"><option value="due">Sort: due date</option><option value="pri">Sort: priority</option><option value="new">Sort: newest</option><option value="ttl">Sort: title</option><option value="agenda">Agenda: Today / Upcoming</option></select>
+<button id="sm" style="flex:0 0 auto">☑ Select</button><button id="full" class="p" style="flex:0 0 auto">+ Full form</button></div>
+<div id="toast"></div>
+<div class="row"><select id="pr"><option value="">⭐ Saved filters</option></select><button id="ps" class="s" style="flex:0 0 auto">Save current</button><button id="pd" class="s" style="flex:0 0 auto">Delete</button></div>
+<div id="bar" class="row" style="display:none;align-items:center"><span id="bn" style="flex:1 1 100px"></span><button class="s" id="bkA">All shown</button><button class="s" id="bkC">✔ Complete</button><button class="s" id="bkD">🗑 Delete</button></div>
+<div id="cal" style="display:none"></div>
+<div id="list"></div>
+<input type="file" id="fi" hidden>
+<div class="ft">Developed by Santosh Phuyal</div>
+</div>
+<dialog id="dbd"><div style="font-weight:600;margin-bottom:8px">Dashboard</div><div id="dbb"></div><div class="row" style="margin-top:12px"><button id="dbx">Close</button></div></dialog>
+<dialog id="dg"><div style="font-weight:600" id="dh">Task</div>
+<label>Title</label><input id="f_t" list="tl">
+<label>Notes</label><textarea id="f_n" rows="2"></textarea>
+<div class="row" style="margin:0"><div><label>Priority</label><select id="f_p"><option value="H">High</option><option value="M" selected>Medium</option><option value="L">Low</option></select></div>
+<div><label>Category</label><select id="f_c"><option>Personal</option><option>Work</option><option>Other</option></select><datalist id="cl"></datalist></div></div>
+<label>Due date</label>
+<div class="row" style="margin:0"><select id="f_m" style="flex:0 0 90px"><option value="ad">AD</option><option value="bs">BS</option></select>
+<input type="date" id="f_ad">
+<div class="bs" id="f_bs"><select id="b_y"></select><select id="b_m"></select><select id="b_d"></select></div></div>
+<div id="pv"></div><div class="row" id="qd" style="margin:4px 0 0"><button class="s" data-q="0">Today</button><button class="s" data-q="1">Tomorrow</button><button class="s" data-q="7">+1 week</button><button class="s" data-q="m">+1 month</button><button class="s" data-q="x">No date</button></div>
+<label>Tags (comma separated)</label><input id="f_tg" placeholder="e.g. urgent, home">
+<div class="row" style="margin:0"><div><label>Time (optional)</label><input type="time" id="f_tm"></div><div><label>Remind before (min)</label><input type="number" id="f_rm" min="0" max="1440" value="10"></div></div>
+<div class="row" style="margin:0"><div><label>Renewal repeat</label><select id="f_r"><option value="none">None</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="bsm:1">BS monthly (same BS date)</option><option value="bsy:1">BS yearly</option><option value="custom">Custom…</option></select><div id="cu" style="display:none;gap:6px;margin-top:4px;align-items:center">every <input id="f_en" type="number" min="1" value="2" style="width:70px"><select id="f_eu" style="width:auto"><option value="d">days</option><option value="w">weeks</option><option value="m">months</option><option value="y">years</option></select></div></div>
+<div><label>Alert days before</label><input type="number" id="f_a" min="0" max="365" value="2"></div></div>
+<label>Subtasks</label><div id="sl"></div><div class="row" style="margin:0"><input id="si" placeholder="Add subtask…" style="flex:1 1 auto"><button id="sa" class="s" style="flex:0 0 auto">Add</button></div>
+<div class="row" style="margin-top:14px"><button id="cx">Cancel</button><button id="st">★ Save as template</button><button id="sn">Save &amp; new</button><button class="p" id="sv">Save</button></div>
+</dialog>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MN=["Baisakh","Jestha","Ashadh","Shrawan","Bhadra","Ashwin","Kartik","Mangsir","Poush","Magh","Falgun","Chaitra"];
+/* BS calendar data: 2080–2090. Anchor: 2080-01-01 BS = 2023-04-14 AD. Verify/extend as needed. */
+const BSD={2080:[31,32,31,32,31,30,30,30,29,29,30,30],2081:[31,31,32,32,31,30,30,30,29,30,30,30],2082:[30,32,31,32,31,30,30,30,29,30,30,30],2083:[31,31,32,31,31,30,30,30,29,30,30,30],2084:[31,31,32,31,31,30,30,30,29,30,30,30],2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,30,29,30,30,30],2087:[31,31,32,31,31,31,30,30,29,30,30,30],2088:[30,31,32,32,30,31,30,30,29,30,30,30],2089:[30,32,31,32,31,30,30,30,29,30,30,30],2090:[30,32,31,32,31,30,30,30,29,30,30,30]};
+const Y0=2080,Y1=2090,BASE=Date.UTC(2023,3,14),DAY=864e5;
+const p2=n=>String(n).padStart(2,"0");
+const isoU=ms=>{const d=new Date(ms);return d.getUTCFullYear()+"-"+p2(d.getUTCMonth()+1)+"-"+p2(d.getUTCDate())};
+const uOf=iso=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");return m?Date.UTC(+m[1],+m[2]-1,+m[3]):NaN};
+function today(){const d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate())}
+function bs2ad(y,m,d){if(!BSD[y]||m<1||m>12||d<1||d>BSD[y][m-1])return null;let n=0;for(let i=Y0;i<y;i++)n+=BSD[i].reduce((a,b)=>a+b,0);for(let i=0;i<m-1;i++)n+=BSD[y][i];return isoU(BASE+(n+d-1)*DAY)}
+function ad2bs(iso){let n=Math.round((uOf(iso)-BASE)/DAY);if(isNaN(n)||n<0)return null;for(let y=Y0;y<=Y1;y++){for(let m=0;m<12;m++){if(n<BSD[y][m])return{y,m:m+1,d:n+1};n-=BSD[y][m]}}return null}
+const bsTxt=iso=>{const b=iso&&ad2bs(iso);return b?b.y+"-"+p2(b.m)+"-"+p2(b.d)+" BS":""};
+function addN(iso,r,k){if(r.startsWith("bs")){const q=r.split(":"),b=ad2bs(iso);if(!b)return"9999-12-31";const tm=b.m-1+k*(+q[1]||1)*(q[0]==="bsy"?12:1),y=b.y+Math.floor(tm/12),m=tm%12+1;if(!BSD[y])return"9999-12-31";return bs2ad(y,m,Math.min(b.d,BSD[y][m-1]))}let n=1,u="m";if(r==="weekly"){n=7;u="d"}else if(r.startsWith("custom:")){const q=r.split(":");n=Math.max(1,+q[1]||1);u=q[2]||"d"}else n={monthly:1,quarterly:3,yearly:12}[r]||1;
+if(u==="d"||u==="w")return isoU(uOf(iso)+k*n*(u==="w"?7:1)*DAY);
+const m=k*n*(u==="y"?12:1),d=new Date(uOf(iso)),day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+m);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,last));return isoU(d.getTime())}
+const addInt=(iso,r)=>addN(iso,r,1);
+const diff=iso=>Math.round((uOf(iso)-uOf(today()))/DAY);
+/* IndexedDB */
+let DB,tasks=[];
+const open=()=>new Promise((res,rej)=>{const r=indexedDB.open("todo-db",2);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("tasks")){const s=d.createObjectStore("tasks",{keyPath:"id",autoIncrement:true});s.createIndex("due","due")}if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta")};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const st=m=>DB.transaction("tasks",m).objectStore("tasks");
+const rq=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const dbAll=()=>rq(st("readonly").getAll()),dbPut=t=>rq(st("readwrite").put(t)),dbDel=id=>rq(st("readwrite").delete(id)),dbClr=()=>rq(st("readwrite").clear());
+async function load(){tasks=await dbAll();render();alerts();tick()}
+/* Task helpers */
+const normCat=c=>{c=String(c||"").trim().toLowerCase();return c===""||c==="personal"||c==="p"?"Personal":c==="work"||c==="w"?"Work":"Other"};
+const prev=ti=>tasks.filter(x=>x.title.toLowerCase()===ti.toLowerCase()).sort((a,b)=>b.created-a.created)[0];
+const mk=o=>({title:"",notes:"",priority:"M",category:"",due:"",done:false,repeat:"none",alertDays:null,subs:[],time:"",remind:10,tags:[],trashed:0,created:Date.now(),...o});
+const ad=t=>t.alertDays!=null?t.alertDays:(t.repeat!=="none"?7:2);
+const PO={H:0,M:1,L:2},PN={H:"High",M:"Medium",L:"Low"};
+function pdate(s){s=s.toLowerCase();if(s==="today")return today();if(s==="tomorrow"||s==="tmr")return isoU(uOf(today())+DAY);
+let m=/^\+(\d+)d?$/.exec(s);if(m)return isoU(uOf(today())+ +m[1]*DAY);
+m=/^bs:(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);if(m)return bs2ad(+m[1],+m[2],+m[3])||"";
+return /^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(uOf(s))?s:""}
+function parseQ(s){const t={};const gm=/\s>\s*/.exec(s);if(gm){t.subs=s.slice(gm.index+gm[0].length).split(";").map(x=>x.trim()).filter(Boolean).map(x=>({t:x,d:false}));s=s.slice(0,gm.index)}
+s=s.replace(/(^|\s)~(\d{1,2})(?::(\d{2}))?\s?(am|pm)?(?=\s|$)/i,(_,a,h,mi,ap)=>{h=+h;if(ap){ap=ap.toLowerCase();if(ap==="pm"&&h<12)h+=12;if(ap==="am"&&h===12)h=0}t.time=p2(h)+":"+(mi||"00");return a});s=s.replace(/(^|\s)\+([A-Za-z][\w-]*)/g,(_,a,g)=>{(t.tags=t.tags||[]).push(g.toLowerCase());return a});s=s.replace(/(^|\s)!([hml])\b/i,(_,a,p)=>{t.priority=p.toUpperCase();return a});
+s=s.replace(/(^|\s)#(\S+)/,(_,a,c)=>{t.category=c;return a});
+s=s.replace(/(^|\s)\*every(\d+)([dwmy])\b/i,(_,a,n,u)=>{t.repeat="custom:"+n+":"+u.toLowerCase();return a});s=s.replace(/(^|\s)\*(daily|weekly|monthly|quarterly|yearly|bsmonthly|bsyearly)\b/i,(_,a,r)=>{r=r.toLowerCase();t.repeat=r==="daily"?"custom:1:d":r==="bsmonthly"?"bsm:1":r==="bsyearly"?"bsy:1":r;return a});
+s=s.replace(/(^|\s)@(\S+)/,(_,a,d)=>{t.due=pdate(d);return a});
+t.title=s.trim().replace(/\s+/g," ");return t}
+const subHtml=t=>(t.subs||[]).length?"<div>"+t.subs.map((s,i)=>`<label class="sb"><input type="checkbox" data-a="sb" data-i="${t.id}" data-s="${i}"${s.d?" checked":""}><span class="${s.d?"dn":""}">${esc(s.t)}</span></label>`).join("")+"</div>":"";
+const subChip=t=>{const n=(t.subs||[]).length;return n?`<span class="c n">☑ ${t.subs.filter(s=>s.d).length}/${n}</span>`:""};
+/* Render */
+function filtered(){const q=$("fs").value.toLowerCase(),s=$("fst").value,p=$("fp").value,c=$("fc").value,d=$("fd").value;
+let r=tasks.filter(t=>{if(s==="trash")return !!t.trashed&&(!q||t.title.toLowerCase().includes(q));if(t.trashed)return false;if(q&&!(t.title+" "+t.notes+" "+t.category+" "+(t.subs||[]).map(s=>s.t).join(" ")+" "+(t.tags||[]).join(" ")).toLowerCase().includes(q))return false;
+if(s==="open"&&t.done||s==="done"&&!t.done)return false;if(p&&t.priority!==p)return false;if(c&&normCat(t.category)!==c)return false;
+if(d==="none")return !t.due;if(d==="ren")return t.repeat!=="none";
+if(d){if(!t.due||t.done)return false;const n=diff(t.due);if(d==="over"&&n>=0||d==="today"&&n!==0||d==="week"&&(n<0||n>7))return false}return true});
+const k=$("so").value;
+r.sort((a,b)=>k==="pri"?PO[a.priority]-PO[b.priority]:k==="new"?b.created-a.created:k==="ttl"?a.title.localeCompare(b.title):((a.due||"9999")+(a.time||"")).localeCompare((b.due||"9999")+(b.time||"")));
+return r.sort((a,b)=>a.done-b.done)}
+function render(){const cats=["Personal","Work","Other"],cv=$("fc").value;$("tl").innerHTML=[...new Set(tasks.map(t=>t.title))].map(x=>`<option value="${esc(x)}">`).join("");
+$("fc").innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option${c===cv?" selected":""}>${esc(c)}</option>`).join("");
+$("cl").innerHTML=cats.map(c=>`<option value="${esc(c)}">`).join("");
+let r=filtered();grp=$("so").value==="agenda";lastG="";$("cal").style.display=view==="cal"?"block":"none";if(view==="cal"){drawCal(r);r=r.filter(t=>t.due===sel)}$("list").innerHTML=r.length?r.map(t=>{let hd="";if(grp){const g=grpOf(t);if(g!==lastG){lastG=g;hd=`<div class="gh">${g}</div>`}}let chip="";
+if(t.due){const n=diff(t.due),cl=t.done?"":n<0?"r":n<=ad(t)?"w":"";chip=`<span class="c ${cl}">📅 ${t.due} AD · ${bsTxt(t.due)||"—"}${t.time?" · ⏰ "+t.time:""}${t.done?"":n<0?` · ${-n}d overdue`:n===0?" · today":` · in ${n}d`}</span>`}
+return `${hd}<div class="t ${t.priority}${t.done?" d":""}">${selMode?`<input type="checkbox" data-a="pk" data-i="${t.id}"${picked.has(t.id)?" checked":""}>`:`<input type="checkbox" data-a="tg" data-i="${t.id}"${t.done?" checked":""}>`}
+<div class="b"><div class="tt">${esc(t.title)}</div>${t.notes?`<div class="nt">${esc(t.notes)}</div>`:""}
+${subHtml(t)}<div class="m"><span class="c">${PN[t.priority]}</span>${subChip(t)}<span class="c">${normCat(t.category)}</span>${(t.tags||[]).map(g=>`<span class="c" data-a="tgf" data-i="${t.id}" data-g="${esc(g)}" style="cursor:pointer">+${esc(g)}</span>`).join("")}${chip}${t.repeat!=="none"?`<span class="c n">🔁 ${rl(t.repeat)}</span>`:""}</div></div>
+<div class="a">${t.repeat!=="none"&&t.due?`<button class="s" data-a="rn" data-i="${t.id}">Renew</button>`:""}<button class="s" data-a="ed" data-i="${t.id}">Edit</button><button class="s" data-a="dp" data-i="${t.id}">Copy</button>${t.trashed?`<button class="s" data-a="rs" data-i="${t.id}">Restore</button>`:""}<button class="s" data-a="dl" data-i="${t.id}">${t.trashed?"Delete forever":"Delete"}</button></div></div>`}).join(""):'<div class="em">No tasks match.</div>';if(view==="cal"&&(vb[sel]||[]).length){if(!r.length)$("list").innerHTML="";$("list").insertAdjacentHTML("beforeend",vb[sel].map(vrow).join(""))}}
+function alerts(){const a=tasks.filter(t=>!t.done&&!t.trashed&&t.due&&diff(t.due)<=ad(t)).sort((x,y)=>x.due.localeCompare(y.due));const el=$("alerts");
+if(!a.length){el.style.display="none";return}
+el.style.display="block";el.innerHTML="<b>⚠ "+a.length+" need attention</b><br>"+a.slice(0,6).map(t=>{const n=diff(t.due);return `${t.repeat!=="none"?"🔁 ":""}${esc(t.title)}${miss(t)} — ${n<0?`<b class="o">${-n}d overdue</b>`:n===0?"<b class=\"o\">today</b>":"in "+n+"d"}`}).join("<br>")+(a.length>6?"<br>…and "+(a.length-6)+" more":"");
+if("Notification"in window&&Notification.permission==="granted"&&!sessionStorage.getItem("n")){try{sessionStorage.setItem("n","1")}catch(e){}new Notification("To-Do alerts",{body:a.length+" task(s) due or overdue"})}}
+/* Repeat helpers, toast, bulk, presets */
+const rl=r=>{if(!r||r==="none")return"";if(r.startsWith("custom:")){const q=r.split(":");return"every "+q[1]+({d:" day(s)",w:" week(s)",m:" month(s)",y:" year(s)"}[q[2]]||"")}return{"bsm:1":"BS monthly","bsy:1":"BS yearly"}[r]||r};
+function occs(t,a,b){const r=[];if(t.repeat==="none"||!t.due||t.done)return r;for(let k=1;k<800;k++){const d=addN(t.due,t.repeat,k);if(d>b)break;if(d>=a)r.push(d)}return r}
+const miss=t=>{const c=t.repeat!=="none"&&t.due&&diff(t.due)<0?occs(t,"0000-01-01",isoU(uOf(today())-DAY)).length:0;return c?` (+${c} more missed)`:""};
+const vrow=t=>`<div class="t ${t.priority}"><div class="b"><div class="tt">${esc(t.title)}</div><div class="m"><span class="c n">🔁 ${rl(t.repeat)}</span><span class="c ${diff(sel)<0?"r":""}">${diff(sel)<0?"missed occurrence":"upcoming occurrence"}</span></div></div><div class="a"><button class="s" data-a="mv" data-i="${t.id}" data-d="${sel}">Add as task</button><button class="s" data-a="ed" data-i="${t.id}">Edit series</button></div></div>`;
+let tt;function toast(msg,items){const el=$("toast");el.innerHTML=esc(msg)+(items?' <button id="ud" class="s">Undo</button>':"");el.style.display="flex";clearTimeout(tt);tt=setTimeout(()=>el.style.display="none",7000);if(items)$("ud").onclick=async()=>{for(const x of items)await dbPut(x);el.style.display="none";load()}}
+let selMode=false;const picked=new Set();
+function bar(){$("bar").style.display=selMode?"flex":"none";$("bn").textContent=picked.size+" selected";$("sm").textContent=selMode?"✕ Done":"☑ Select"}
+$("sm").onclick=()=>{selMode=!selMode;picked.clear();render();bar()};
+$("bkA").onclick=()=>{filtered().forEach(t=>picked.add(t.id));render();bar()};
+$("bkC").onclick=async()=>{if(!picked.size)return;for(const id of picked){const t=tasks.find(x=>x.id===id);if(t){t.done=true;t.doneAt=Date.now();(t.subs||[]).forEach(s=>s.d=true);await dbPut(t)}}picked.clear();await load();bar();toast("Marked complete")};
+$("bkD").onclick=async()=>{if(!picked.size)return;const del=tasks.filter(t=>picked.has(t.id)).map(t=>({...t})),perm=$("fst").value==="trash";for(const t of del){if(perm)await dbDel(t.id);else await dbPut({...t,trashed:Date.now()})}picked.clear();await load();bar();toast(del.length+(perm?" deleted forever":" moved to trash"),perm?null:del)};
+const mst=m=>DB.transaction("meta",m).objectStore("meta"),getPre=()=>rq(mst("readonly").get("presets")).then(v=>v||{}),setPre=p=>rq(mst("readwrite").put(p,"presets"));
+const FL=["fs","fst","fp","fc","fd","so"];
+async function loadPre(){const p=await getPre();$("pr").innerHTML='<option value="">⭐ Saved filters</option>'+Object.keys(p).map(k=>`<option>${esc(k)}</option>`).join("")}
+$("ps").onclick=async()=>{const n=(prompt("Name this filter:")||"").trim();if(!n)return;const p=await getPre();p[n]=FL.map(i=>$(i).value);await setPre(p);await loadPre();$("pr").value=n};
+$("pr").onchange=async()=>{const n=$("pr").value;if(!n)return;const p=await getPre();(p[n]||[]).forEach((v,i)=>$(FL[i]).value=v);render()};
+$("pd").onclick=async()=>{const n=$("pr").value;if(!n)return;const p=await getPre();delete p[n];await setPre(p);await loadPre()};
+/* Agenda, settings, backup reminder, missed, reminders, templates, dashboard */
+const grpOf=t=>{if(t.done)return"Done";if(!t.due)return"No date";const n=diff(t.due);return n<0?"Overdue":n===0?"Today":n===1?"Tomorrow":n<=7?"This week":"Later"};
+let grp=false,lastG="";
+const getSet=()=>rq(mst("readonly").get("settings")).then(v=>v||{}),setSet=s=>rq(mst("readwrite").put(s,"settings"));
+const stampBk=async()=>{const s=await getSet();s.lastBackup=Date.now();await setSet(s)};
+async function chkBackup(){const s=await getSet();if(!s.lastBackup){s.lastBackup=Date.now();await setSet(s);return}const d=Math.floor((Date.now()-s.lastBackup)/DAY);if(d>=7){const el=$("bkn");el.style.display="block";el.innerHTML=`💾 It has been ${d} days since your last backup. <button class="s" id="bkgo">Backup now</button> <button class="s" id="bksn">Later</button>`;$("bkgo").onclick=()=>{$("bk").value="jx";$("bk").onchange();el.style.display="none"};$("bksn").onclick=async()=>{s.lastBackup=Date.now()-5*DAY;await setSet(s);el.style.display="none"}}}
+async function spawnMissed(){for(const t of tasks.filter(x=>x.trashed&&Date.now()-x.trashed>30*DAY))await dbDel(t.id);const s=await getSet();if(s.auto===false)return;const y=isoU(uOf(today())-DAY);let n=0;
+for(const t of tasks){if(t.done||t.trashed||t.repeat==="none"||!t.due||t.due>y)continue;let k=0,d=t.due;const list=[];while(d<=y&&k<800){list.push(d);k++;d=addN(t.due,t.repeat,k)}
+for(const x of list){const o=mk({...t,repeat:"none",due:x,done:false,created:Date.now(),subs:(t.subs||[]).map(z=>({t:z.t,d:false}))});delete o.id;await dbPut(o);n++}t.due=d;(t.subs||[]).forEach(z=>z.d=false);await dbPut(t)}
+if(n){await load();toast(n+" missed occurrence(s) added as tasks")}}
+const fired=new Set();
+function tick(){if(!DB)return;const now=new Date(),td=today(),mins=now.getHours()*60+now.getMinutes();tasks.forEach(t=>{if(t.done||t.trashed||!t.time||t.due!==td)return;const hm=t.time.split(":").map(Number),at=hm[0]*60+hm[1],k=t.id+td+t.time;if(mins>=at-(t.remind||0)&&mins<at+60&&!fired.has(k)){fired.add(k);const msg="⏰ "+t.title+" at "+t.time;toast(msg);if("Notification"in window&&Notification.permission==="granted")new Notification("To-Do reminder",{body:msg})}})}
+let TP=[];
+const tagsOf=()=>$("f_tg").value.split(",").map(x=>x.trim().toLowerCase().replace(/^\+/,"")).filter(Boolean);
+async function loadTp(){TP=await rq(mst("readonly").get("templates")).then(v=>v||[]);$("tpl").innerHTML=TP.map((x,i)=>`<span class="c tp" data-tp="${i}">+ ${esc(x.title)} <b data-td="${i}">×</b></span>`).join("")}
+$("tpl").onclick=async e=>{const d=e.target.dataset.td,c=e.target.closest("[data-tp]");if(d!=null){TP.splice(+d,1);await rq(mst("readwrite").put(TP,"templates"));return loadTp()}if(!c)return;const x=TP[+c.dataset.tp],o=mk({...x,done:false,due:x.repeat!=="none"?today():""});delete o.id;await dbPut(o);await load();toast("Added: "+x.title)};
+$("st").onclick=async()=>{const title=$("f_t").value.trim();if(!title)return $("f_t").focus();TP.push({title,notes:$("f_n").value,priority:$("f_p").value,category:$("f_c").value,repeat:getRep(),time:$("f_tm").value,remind:+$("f_rm").value||0,tags:tagsOf(),subs:subs.map(z=>({t:z.t,d:false}))});await rq(mst("readwrite").put(TP,"templates"));loadTp();$("st").textContent="★ Saved!";setTimeout(()=>$("st").textContent="★ Save as template",1500)};
+$("db").onclick=()=>{const L=tasks.filter(t=>!t.trashed),o=L.filter(t=>!t.done),w=Date.now()-7*DAY,C=["Personal","Work","Other"];
+const st=[["Open",o.length],["Overdue",o.filter(t=>t.due&&diff(t.due)<0).length],["Due today",o.filter(t=>t.due===today()).length],["Next 7 days",o.filter(t=>t.due&&diff(t.due)>0&&diff(t.due)<=7).length],["Done (7d)",L.filter(t=>t.done&&t.doneAt>w).length],["Recurring",o.filter(t=>t.repeat!=="none").length]];
+const mx=Math.max(1,...C.map(c=>L.filter(t=>normCat(t.category)===c).length));
+$("dbb").innerHTML='<div class="sg">'+st.map(x=>`<div class="sc"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")+"</div>"+C.map(c=>{const a=L.filter(t=>normCat(t.category)===c),d=a.filter(t=>t.done).length;return `<div class="br"><span>${c} · ${d}/${a.length} done</span><div><i style="width:${a.length/mx*100}%"><u style="width:${a.length?d/a.length*100:0}%"></u></i></div></div>`}).join("");$("dbd").showModal()};
+$("dbx").onclick=()=>$("dbd").close();
+/* Calendar */
+let view="list",cm="ad",cy=0,cmo=0,sel=today(),vb={};
+function cInit(){if(cm==="ad"){const d=new Date(uOf(sel));cy=d.getUTCFullYear();cmo=d.getUTCMonth()+1}else{const b=ad2bs(sel)||ad2bs(today())||{y:2083,m:1};cy=b.y;cmo=b.m}}
+cInit();
+function drawCal(r){const by={};r.forEach(t=>{if(t.due)(by[t.due]=by[t.due]||[]).push(t)});
+let first,n;if(cm==="ad"){first=Date.UTC(cy,cmo-1,1);n=new Date(Date.UTC(cy,cmo,0)).getUTCDate()}else{first=uOf(bs2ad(cy,cmo,1));n=BSD[cy][cmo-1]}
+const dow=new Date(first).getUTCDay();vb={};{const a=isoU(first),z=isoU(first+(n-1)*DAY);r.forEach(t=>occs(t,a,z).forEach(d=>(vb[d]=vb[d]||[]).push(t)))}
+let h=`<div class="ch"><button class="s" data-c="-1">◀</button><b>${cm==="ad"?new Date(first).toLocaleString("en",{month:"long",timeZone:"UTC"})+" "+cy:MN[cmo-1]+" "+cy+" BS"}</b><button class="s" data-c="1">▶</button><button class="s" data-c="m">${cm==="ad"?"Show BS":"Show AD"}</button><button class="s" data-c="t">Today</button></div><div class="cg">`+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<div class="cw">${x}</div>`).join("");
+for(let i=0;i<dow;i++)h+="<div></div>";
+for(let d=1;d<=n;d++){const iso=isoU(first+(d-1)*DAY),ts=(by[iso]||[]).concat(vb[iso]||[]),o=ts.some(t=>!t.done&&diff(iso)<0);const sc=cm==="ad"?(ad2bs(iso)||{}).d:new Date(uOf(iso)).getUTCDate();
+h+=`<div class="cd${iso===today()?" td":""}${iso===sel?" sl":""}" data-d="${iso}"><span>${d}</span><i>${sc||""}</i>${ts.length?`<em class="${o?"o":""}">${ts.length}</em>`:""}</div>`}
+$("cal").innerHTML=h+`</div><div class="hint">Tasks on ${sel} AD · ${bsTxt(sel)||"—"}</div>`}
+$("cal").onclick=e=>{const c=e.target.closest("[data-c]"),d=e.target.closest("[data-d]");
+if(c){const k=c.dataset.c;if(k==="t"){sel=today();cInit()}else if(k==="m"){cm=cm==="ad"?"bs":"ad";cInit()}else{let m=cmo+ +k,y=cy;if(m<1){m=12;y--}if(m>12){m=1;y++}if(cm==="bs"&&!BSD[y])return;cmo=m;cy=y}}else if(d)sel=d.dataset.d;render()};
+$("vw").onclick=()=>{view=view==="list"?"cal":"list";$("vw").textContent=view==="cal"?"☰ List":"📅 Calendar";if(view==="cal")cInit();render()};
+/* Events */
+$("qa").onclick=async()=>{const t=parseQ($("qi").value);if(!t.title)return;if(t.due===""&&/@/.test($("qi").value))alert("Date not recognised (BS range 2080–2090).");const p=prev(t.title),b=p?{category:p.category,priority:p.priority,repeat:p.repeat,alertDays:p.alertDays,notes:p.notes,subs:(p.subs||[]).map(s=>({t:s.t,d:false}))}:{};
+const o=mk({category:$("qc").value,...b,...t});o.category=normCat(o.category);
+if(!o.due&&p&&p.repeat!=="none"&&p.due)o.due=addInt(p.due,p.repeat);
+await dbPut(o);$("qi").value="";load()};
+$("qi").onkeydown=e=>{if(e.key==="Enter")$("qa").click()};
+["fs","fst","fp","fc","fd","so"].forEach(i=>$(i).oninput=render);
+$("list").onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;const t=tasks.find(x=>x.id==b.dataset.i),a=b.dataset.a;if(!t)return;
+if(a==="tgf"){$("fs").value=b.dataset.g;return render()}else if(a==="pk"){b.checked?picked.add(t.id):picked.delete(t.id);return bar()}else if(a==="sb"){t.subs[+b.dataset.s].d=b.checked;t.done=t.subs.every(s=>s.d);t.doneAt=t.done?Date.now():0;await dbPut(t)}else if(a==="tg"){t.done=b.checked;t.doneAt=b.checked?Date.now():0;(t.subs||[]).forEach(s=>s.d=b.checked);await dbPut(t)}else if(a==="dl"){if(t.trashed){if(!confirm("Delete forever?"))return;await dbDel(t.id)}else{const old={...t};t.trashed=Date.now();await dbPut(t);toast("Moved to trash",[old])}}else if(a==="rs"){t.trashed=0;await dbPut(t)}
+else if(a==="rn"){t.due=addInt(t.due,t.repeat);t.done=false;(t.subs||[]).forEach(s=>s.d=false);await dbPut(t)}else if(a==="ed"){return openForm(t)}else if(a==="mv"){const o=mk({...t,repeat:"none",due:b.dataset.d,done:false,created:Date.now(),subs:(t.subs||[]).map(s=>({t:s.t,d:false}))});delete o.id;await dbPut(o)}else if(a==="dp"){const o=mk({...t,title:t.title+" (copy)",done:false,created:Date.now(),subs:(t.subs||[]).map(s=>({t:s.t,d:false}))});delete o.id;o.id=await dbPut(o);await load();return openForm(o)}load()};
+$("bell").onclick=()=>{if(!("Notification"in window))return alert("Notifications are not supported here.");Notification.requestPermission().then(p=>alert(p==="granted"?"Notifications enabled.":"Notifications blocked."))};
+$("th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+/* Form */
+let edit=null,subs=[];
+function rs(){$("sl").innerHTML=subs.map((s,i)=>`<div class="row" style="margin:3px 0"><input value="${esc(s.t)}" data-k="${i}" style="flex:1 1 auto"><button class="s" data-x="${i}" style="flex:0 0 auto">✕</button></div>`).join("")}
+$("sl").oninput=e=>{const k=e.target.dataset.k;if(k!=null)subs[+k].t=e.target.value};
+$("sl").onclick=e=>{const x=e.target.dataset.x;if(x!=null){subs.splice(+x,1);rs()}};
+const addSub=()=>{const v=$("si").value.trim();if(!v)return;subs.push({t:v,d:false});$("si").value="";rs()};
+$("f_t").onchange=()=>{if(edit)return;const p=prev($("f_t").value.trim());if(!p)return;$("f_p").value=p.priority;$("f_c").value=normCat(p.category);setRep(p.repeat);$("f_a").value=ad(p);if(!$("f_n").value)$("f_n").value=p.notes;subs=(p.subs||[]).map(s=>({t:s.t,d:false}));rs();if(p.repeat!=="none"&&p.due&&!curDue()){const v=addInt(p.due,p.repeat);$("f_ad").value=v;setBs(v);pv()}};
+$("qd").onclick=e=>{const k=e.target.dataset.q;if(k==null)return;const v=k==="x"?"":k==="m"?addInt(today(),"monthly"):isoU(uOf(today())+ +k*DAY);$("f_ad").value=v;if(v)setBs(v);else $("f_m").value="ad";setMode()};
+document.addEventListener("keydown",e=>{if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!$("dg").open){e.preventDefault();$("qi").focus()}});
+function setRep(r){const c=r.startsWith("custom:"),q=r.split(":");$("f_r").value=c?"custom":r;$("f_en").value=c?q[1]:2;$("f_eu").value=c?q[2]:"d";$("cu").style.display=c?"flex":"none"}
+const getRep=()=>$("f_r").value==="custom"?"custom:"+Math.max(1,+$("f_en").value||1)+":"+$("f_eu").value:$("f_r").value;
+$("f_r").onchange=()=>{$("cu").style.display=$("f_r").value==="custom"?"flex":"none"};
+$("sa").onclick=addSub;$("si").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSub()}};
+$("b_y").innerHTML=Object.keys(BSD).map(y=>`<option>${y}</option>`).join("");
+$("b_m").innerHTML=MN.map((m,i)=>`<option value="${i+1}">${m}</option>`).join("");
+$("b_d").innerHTML=Array.from({length:32},(_,i)=>`<option>${i+1}</option>`).join("");
+function setMode(){const bs=$("f_m").value==="bs";$("f_ad").style.display=bs?"none":"";$("f_bs").classList.toggle("on",bs);pv()}
+function curDue(){if($("f_m").value==="bs")return bs2ad(+$("b_y").value,+$("b_m").value,+$("b_d").value)||"";return $("f_ad").value}
+function pv(){const d=curDue();$("pv").textContent=d?($("f_m").value==="bs"?"= "+d+" AD":"= "+(bsTxt(d)||"outside BS range 2080–2090")):($("f_m").value==="bs"?"Invalid BS date":"")}
+function setBs(iso){const b=ad2bs(iso);if(b){$("b_y").value=b.y;$("b_m").value=b.m;$("b_d").value=b.d}}
+$("f_m").onchange=()=>{if($("f_m").value==="bs"){setBs($("f_ad").value||today())}else{const d=curDue();if(d)$("f_ad").value=d}setMode()};
+["f_ad","b_y","b_m","b_d"].forEach(i=>$(i).onchange=pv);
+function openForm(t){edit=t;$("dh").textContent=t?"Edit task":"New task";t=t||mk({});
+subs=(t.subs||[]).map(s=>({...s}));rs();$("si").value="";$("f_t").value=t.title;$("f_n").value=t.notes;$("f_p").value=t.priority;$("f_c").value=normCat(t.category);$("f_ad").value=t.due;setRep(t.repeat);$("f_a").value=ad(t);$("f_tm").value=t.time||"";$("f_rm").value=t.remind==null?10:t.remind;$("f_tg").value=(t.tags||[]).join(", ");
+setBs(t.due||today());$("f_m").value="ad";setMode();if(!$("dg").open)$("dg").showModal()}
+$("full").onclick=()=>openForm(null);$("cx").onclick=()=>$("dg").close();
+const doSave=async more=>{const title=$("f_t").value.trim();if(!title)return $("f_t").focus();
+const due=curDue();if($("f_m").value==="bs"&&!due)return alert("Invalid BS date.");
+const o=mk({...(edit||{}),title,subs:subs.map(s=>({t:s.t.trim(),d:s.d})).filter(s=>s.t),notes:$("f_n").value,priority:$("f_p").value,category:$("f_c").value,due,repeat:getRep(),time:$("f_tm").value,remind:+$("f_rm").value||0,tags:tagsOf(),alertDays:+$("f_a").value||0});
+if(edit)o.id=edit.id;await dbPut(o);if(more){await load();openForm(null);$("f_c").value=o.category;$("f_p").value=o.priority;$("f_t").focus()}else{$("dg").close();load()}};$("sv").onclick=()=>doSave(false);$("sn").onclick=()=>doSave(true);
+/* Backup / restore */
+const save=(blob,name)=>{stampBk();const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()};
+let mode="";
+$("bk").onchange=()=>{const v=$("bk").value;$("bk").value="";const ts=today();
+if(v==="jx")Promise.all([getPre(),getSet(),rq(mst("readonly").get("templates")).then(v=>v||[])]).then(([presets,settings,templates])=>save(new Blob([JSON.stringify({app:"todo",version:2,exported:new Date().toISOString(),tasks,presets,settings,templates},null,1)],{type:"application/json"}),"todo-backup-"+ts+".json"));
+else if(v==="ex"){if(!window.XLSX)return alert("Excel library not loaded (check connection).");
+const rows=tasks.filter(t=>!t.trashed).map(t=>({id:t.id,title:t.title,notes:t.notes,priority:t.priority,category:normCat(t.category),due_ad:t.due,due_bs:bsTxt(t.due).replace(" BS",""),done:t.done?"yes":"no",repeat:t.repeat,alert_days:ad(t),time:t.time||"",tags:(t.tags||[]).join(", "),subtasks:(t.subs||[]).map(s=>(s.d?"[x] ":"[ ] ")+s.t).join(" | "),created:new Date(t.created).toISOString()}));
+const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Tasks");XLSX.writeFile(wb,"todo-backup-"+ts+".xlsx");stampBk()}
+else if(v==="cd"){const dn=tasks.filter(t=>t.done);if(!dn.length)return alert("No completed tasks.");if(confirm("Move "+dn.length+" completed task(s) to trash?"))Promise.all(dn.map(t=>dbPut({...t,trashed:Date.now()}))).then(load)}else if(v==="et"){const tr=tasks.filter(t=>t.trashed);if(tr.length&&confirm("Permanently delete "+tr.length+" trashed task(s)?"))Promise.all(tr.map(t=>dbDel(t.id))).then(load)}else if(v==="au"){getSet().then(s=>{s.auto=s.auto===false;setSet(s);toast("Auto-create missed: "+(s.auto?"ON":"OFF"))})}else if(v==="ca"){if(!tasks.length)return;if(confirm("Delete ALL "+tasks.length+" tasks? Export a backup first.")&&confirm("This cannot be undone. Really clear everything?"))dbClr().then(load)}else if(v){mode=v;$("fi").accept=v==="ji"?".json":".xlsx,.xls";$("fi").click()}};
+$("fi").onchange=async()=>{const f=$("fi").files[0];$("fi").value="";if(!f)return;let list=[];
+try{if(mode==="ji"){const j=JSON.parse(await f.text());list=Array.isArray(j)?j:j.tasks;if(!Array.isArray(list))throw 0;if(!Array.isArray(j)){if(j.presets){await setPre({...(await getPre()),...j.presets});await loadPre()}if(j.settings)await setSet({...await getSet(),...j.settings});if(Array.isArray(j.templates))await rq(mst("readwrite").put(j.templates,"templates"));loadTp()}}
+else{const wb=XLSX.read(await f.arrayBuffer(),{type:"array"});list=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{raw:false,defval:""}).map(r=>{
+let due=String(r.due_ad||"").trim();if(!due&&r.due_bs){const m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(r.due_bs));if(m)due=bs2ad(+m[1],+m[2],+m[3])||""}
+return{id:r.id?+r.id:undefined,title:String(r.title||""),notes:String(r.notes||""),priority:String(r.priority||"M").toUpperCase()[0],category:String(r.category||""),due,done:/^(yes|true|1)$/i.test(r.done),repeat:r.repeat||"none",alertDays:r.alert_days===""?null:+r.alert_days,time:String(r.time||""),tags:String(r.tags||"").split(",").map(x=>x.trim()).filter(Boolean),subs:String(r.subtasks||"").split("|").map(x=>x.trim()).filter(Boolean).map(x=>({t:x.replace(/^\[[ xX]\]\s*/,""),d:/^\[[xX]\]/.test(x)})),created:r.created?Date.parse(r.created)||Date.now():Date.now()}})}}
+catch(e){return alert("Could not read that file.")}
+list=list.filter(t=>t&&t.title);if(!list.length)return alert("No tasks found in file.");
+const rep=confirm("Import "+list.length+" tasks.\nOK = replace all current tasks\nCancel = merge with current tasks");
+if(rep)await dbClr();for(const t of list){const o=mk(t);if(!rep||!t.id)delete o.id;if(!["H","M","L"].includes(o.priority))o.priority="M";await dbPut(o)}load()};
+open().then(d=>{DB=d;load().then(spawnMissed);loadPre();loadTp();chkBackup()}).catch(()=>{$("list").innerHTML='<div class="em">IndexedDB is unavailable in this browser.</div>'});
+setInterval(()=>{if(DB){alerts();spawnMissed()}},3600e3);setInterval(tick,30000);
+</script></body></html>

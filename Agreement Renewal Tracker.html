@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agreement Renewal Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--tx:#1c2333;--mut:#6b7488;--bd:#dde2ec;--pri:#2457d6;--ok:#1b8a4b;--no:#b7791f;--wa:#d9480f;--cr:#d11a2a;--ex:#6b7280;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141c;--card:#192030;--tx:#e8ecf4;--mut:#93a0b8;--bd:#2b3550;--pri:#6c93ff;--ok:#4cc27f;--no:#e0b04a;--wa:#ff8a55;--cr:#ff5d6c;--ex:#9aa3b2;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10141c;--card:#192030;--tx:#e8ecf4;--mut:#93a0b8;--bd:#2b3550;--pri:#6c93ff;--ok:#4cc27f;--no:#e0b04a;--wa:#ff8a55;--cr:#ff5d6c;--ex:#9aa3b2;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:20px;margin:0}h1 small{display:block;font-size:12px;font-weight:400;color:var(--mut)}
+main{max-width:1200px;margin:0 auto;padding:16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--pri)}button.p{background:var(--pri);border-color:var(--pri);color:#fff}button.d{color:var(--cr)}button.s{padding:4px 9px;font-size:13px}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;width:100%}
+input.bad{border-color:var(--cr)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}.stat b{font-size:24px;display:block}.stat span{color:var(--mut);font-size:12px}
+#banners .bn{padding:10px 14px;border-radius:10px;margin-bottom:8px;font-weight:600;color:#fff}
+.bn.cr{background:var(--cr);animation:pulse 1.2s infinite}.bn.wa{background:var(--wa);animation:pulse 2s infinite}.bn.no{background:var(--no)}.bn.ex{background:var(--ex)}
+@keyframes pulse{50%{opacity:.7}}@keyframes blink{50%{opacity:.1}}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:9px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{font-size:12px;color:var(--mut);text-transform:uppercase}
+td small{color:var(--mut);display:block}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap}
+.pill.ok{background:var(--ok)}.pill.no{background:var(--no)}.pill.wa{background:var(--wa)}.pill.cr{background:var(--cr)}.pill.ex{background:var(--ex)}
+tr.blink .pill,tr.blink .dl{animation:blink .7s infinite}tr.blink{background:color-mix(in srgb,var(--cr) 10%,transparent)}
+tr.lap{background:color-mix(in srgb,var(--ex) 14%,transparent)}
+.dl{font-weight:700}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);padding:18px;width:min(640px,94vw);max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g .f{grid-column:1/-1}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:2px}
+.dd{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#toasts{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:99;max-width:340px}
+.t{background:var(--tx);color:var(--bg);padding:9px 12px;border-radius:8px;font-size:14px}.t.cr{background:var(--cr);color:#fff}.t.wa{background:var(--wa);color:#fff}
+footer{text-align:center;color:var(--mut);padding:18px;font-size:13px}
+.hint{color:var(--mut);font-size:12px}
+@media(max-width:560px){.g,.dd{grid-template-columns:1fr}}
+.bk{display:inline-block;margin:10px 14px 0;color:var(--pri);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<a class="bk" href="index.html">← All tools</a>
+<header>
+ <h1>📄 Agreement Renewal Tracker<small>AD &amp; BS (विक्रम संवत्) dates · Today: <span id="today"></span></small></h1>
+ <div class="bar">
+  <button class="p" id="bAdd">+ New agreement</button>
+  <button id="bJson">Backup JSON</button><button id="bXls">Export Excel</button>
+  <button id="bRest">Restore…</button><button id="bCal">BS calendar</button><button id="bTheme">◐</button>
+  <input type="file" id="fileIn" accept=".json,.xlsx,.xls" hidden>
+ </div>
+</header>
+<main>
+ <div id="banners"></div>
+ <div class="cards" id="stats"></div>
+ <div class="bar" style="margin-bottom:10px">
+  <input id="q" placeholder="Search title, party, notes…" style="max-width:300px">
+  <select id="flt" style="max-width:200px"><option value="">All statuses</option><option value="soon">Due within 30 days</option><option value="active">Active</option><option value="lapsed">Needs action</option><option value="renewed">Renewed before</option><option value="expired">Expired</option></select>
+ </div>
+ <div class="tw"><table><thead><tr><th>#</th><th>Agreement</th><th>Expiry (AD)</th><th>Expiry (BS)</th><th>Days left</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+ <p class="hint">Alerts: under 30 days = notice · under 15 days = continuous alert · under 7 days = blinking · after expiry = you must choose Renewed or Expired. Data is stored in this browser; use Backup regularly.</p>
+</main>
+<footer>Developed by <b>Santosh Phuyal</b></footer>
+<div id="toasts"></div>
+
+<dialog id="dForm"><h3 id="fTitle">Agreement</h3>
+ <div class="g"><input type="hidden" id="f_id">
+  <div class="f"><label>Agreement title *</label><input id="f_title"></div>
+  <div><label>Party / vendor</label><input id="f_party"></div>
+  <div><label>Type</label><select id="f_type"><option>Service</option><option>Rental / Lease</option><option>Supply</option><option>Employment</option><option>Insurance</option><option>License / AMC</option><option>Other</option></select></div>
+  <div><label>Start date (AD | BS)</label><div class="dd"><input type="date" id="f_start_ad"><input id="f_start_bs" placeholder="BS 2081-01-15"></div></div>
+  <div><label>Expiry date * (AD | BS)</label><div class="dd"><input type="date" id="f_end_ad"><input id="f_end_bs" placeholder="BS 2082-01-14"></div></div>
+  <div><label>Value (NPR)</label><input id="f_value" type="number" min="0"></div>
+  <div><label>Contact (name / phone / email)</label><input id="f_contact"></div>
+  <div class="f"><label>Notes</label><textarea id="f_notes" rows="2"></textarea></div>
+ </div>
+ <p class="hint">Type either AD or BS; the other fills automatically. BS format: YYYY-MM-DD.</p>
+ <div class="bar" style="justify-content:flex-end"><button id="fCancel">Cancel</button><button class="p" id="fSave">Save</button></div>
+</dialog>
+
+<dialog id="dRen"><h3>Renew agreement</h3><p id="rInfo" class="hint"></p>
+ <div class="g"><input type="hidden" id="r_id">
+  <div><label>New start date * (AD | BS)</label><div class="dd"><input type="date" id="r_start_ad"><input id="r_start_bs" placeholder="BS"></div></div>
+  <div><label>New expiry date * (AD | BS)</label><div class="dd"><input type="date" id="r_end_ad"><input id="r_end_bs" placeholder="BS"></div></div>
+  <div><label>New value (NPR)</label><input id="r_value" type="number" min="0"></div>
+  <div><label>Renewal ref / letter no. *</label><input id="r_ref"></div>
+  <div><label>Approved / signed by</label><input id="r_by"></div>
+  <div><label>Renewal date (AD)</label><input type="date" id="r_on"></div>
+  <div class="f"><label>Remarks (changes in terms, etc.)</label><textarea id="r_rem" rows="2"></textarea></div>
+ </div>
+ <div class="bar" style="justify-content:flex-end;margin-top:10px"><button id="rCancel">Cancel</button><button class="p" id="rSave">Save renewal</button></div>
+</dialog>
+
+<dialog id="dExp"><h3 style="color:var(--cr)">⚠ Agreement expired — action required</h3>
+ <p id="eInfo"></p><p class="hint">Has this agreement been renewed, or has it expired?</p>
+ <div class="bar" style="justify-content:flex-end"><button id="eLater">Remind me later</button><button class="d" id="eExp">Expired</button><button class="p" id="eRen">Renewed</button></div>
+</dialog>
+
+<dialog id="dCal"><h3>BS calendar database</h3>
+ <p class="hint">JSON of BS year → days in each of 12 months (Baisakh…Chaitra). Years 2080–2090 are preloaded. To add future years, append e.g. <code>"2091":[31,32,...]</code> (12 numbers). Keep 2080 as the first year (anchor: 1 Baisakh 2080 = 14 Apr 2023). Please verify values against the official Nepali calendar.</p>
+ <textarea id="calTx" rows="12" style="font-family:monospace;font-size:12px"></textarea>
+ <div class="bar" style="justify-content:space-between;margin-top:10px"><button id="calRst" class="d">Reset default</button><span class="bar"><button id="calCancel">Cancel</button><button class="p" id="calSave">Save</button></span></div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),p2=n=>String(n).padStart(2,'0');
+const MN=['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+const DEF={2080:[31,32,31,32,31,30,30,30,29,29,30,30],2081:[31,31,32,32,31,30,30,30,29,30,30,30],2082:[30,32,31,32,31,30,30,30,29,30,30,30],2083:[31,31,32,31,31,30,30,30,29,30,30,30],2084:[31,31,32,31,31,30,30,30,29,30,30,30],2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,30,29,30,30,30],2087:[31,31,32,31,31,31,30,30,29,30,30,30],2088:[30,31,32,32,30,31,30,30,29,30,30,30],2089:[30,32,31,32,31,30,30,30,29,30,30,30],2090:[30,32,31,32,31,30,30,30,29,30,30,30]};
+const BASE=Date.UTC(2023,3,14),DAY=864e5,KEY='agr_tracker_v1';
+let DB=load();
+function clone(o){return JSON.parse(JSON.stringify(o))}
+const okD=s=>{const t=String(s||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(t))return false;const d=new Date(t+'T00:00:00Z');return !isNaN(d)&&d.getUTCFullYear()===+t.slice(0,4)&&d.getUTCMonth()===+t.slice(5,7)-1&&d.getUTCDate()===+t.slice(8,10)};
+const okCal=c=>c&&typeof c==='object'&&!Array.isArray(c)&&!!c[2080]&&Object.entries(c).every(([y,v])=>Number.isInteger(+y)&&+y>=2080&&Array.isArray(v)&&v.length===12&&v.every(n=>n>=28&&n<=32));
+function normAg(a){if(!a||typeof a!=='object')return null;const o={id:String(a.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6)),title:String(a.title||'').trim(),party:String(a.party||''),type:String(a.type||'Other'),start:okD(a.start)?a.start:'',end:okD(a.end)?a.end:'',value:['string','number'].includes(typeof a.value)?a.value:'',contact:String(a.contact||''),notes:String(a.notes||''),status:a.status==='expired'?'expired':'active',expiredOn:okD(a.expiredOn)?a.expiredOn:'',history:(Array.isArray(a.history)?a.history:[]).map(h=>({on:okD(h&&h.on)?h.on:'',prevStart:okD(h&&h.prevStart)?h.prevStart:'',prevEnd:okD(h&&h.prevEnd)?h.prevEnd:'',prevValue:h&&h.prevValue!=null?h.prevValue:'',ref:String(h&&h.ref||''),by:String(h&&h.by||''),remarks:String(h&&h.remarks||'')}))};return o.title&&o.end?o:null}
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&Array.isArray(r.agreements))return{agreements:r.agreements.map(normAg).filter(Boolean),cal:okCal(r.cal)?r.cal:clone(DEF)}}catch(e){}return{agreements:[],cal:clone(DEF)}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('Browser storage unavailable — use Backup','wa')}}
+const yl=y=>DB.cal[y].reduce((a,b)=>a+b,0);
+function bsToAd(y,m,d){const c=DB.cal[y];if(!c||m<1||m>12||d<1||d>c[m-1])return null;let n=0;for(let k=2080;k<y;k++){if(!DB.cal[k])return null;n+=yl(k)}for(let i=0;i<m-1;i++)n+=c[i];return new Date(BASE+(n+d-1)*DAY)}
+function adToBs(dt){let n=Math.round((dt-BASE)/DAY);if(n<0)return null;let y=2080;while(DB.cal[y]){const L=yl(y);if(n<L){const c=DB.cal[y];let m=0;while(n>=c[m]){n-=c[m];m++}return{y,m:m+1,d:n+1}}n-=L;y++}return null}
+const iso=d=>d.toISOString().slice(0,10),pI=s=>new Date(s+'T00:00:00Z');
+const todayU=()=>{const n=new Date();return Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())};
+const bsS=s=>{if(!s)return'—';const b=adToBs(pI(s));return b?`${b.y}-${p2(b.m)}-${p2(b.d)}`:'out of range'};
+const bsL=s=>{const b=s&&adToBs(pI(s));return b?`${b.d} ${MN[b.m-1]} ${b.y}`:''};
+const addDays=(s,n)=>iso(new Date(pI(s).getTime()+n*DAY));
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const daysLeft=a=>Math.round((pI(a.end)-todayU())/DAY);
+function st(a){if(a.status==='expired')return{k:'expired',c:'ex',t:'Expired'};const d=daysLeft(a);
+ if(d<0)return{k:'lapsed',c:'ex',t:'Lapsed — action needed'};if(d<7)return{k:'crit',c:'cr',t:'Critical'};if(d<15)return{k:'warn',c:'wa',t:'Urgent'};if(d<30)return{k:'notice',c:'no',t:'Due soon'};return{k:'ok',c:'ok',t:'Active'}}
+/* dual date fields */
+function wire(id){const ad=$(id+'_ad'),bs=$(id+'_bs');
+ ad.oninput=()=>{bs.value=ad.value?bsS(ad.value):'';bs.classList.remove('bad')};
+ bs.oninput=()=>{const v=bs.value.trim();if(!v){ad.value='';bs.classList.remove('bad');return}
+  const m=v.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);const d=m&&bsToAd(+m[1],+m[2],+m[3]);
+  if(d){ad.value=iso(d);bs.classList.remove('bad')}else bs.classList.add('bad')}}
+['f_start','f_end','r_start','r_end'].forEach(wire);
+function setD(id,v){$(id+'_ad').value=v||'';$(id+'_ad').oninput()}
+/* toasts + beep */
+function toast(m,c){const t=document.createElement('div');t.className='t '+(c||'');t.textContent=m;$('toasts').appendChild(t);setTimeout(()=>t.remove(),c==='cr'||c==='wa'?7000:3500)}
+function beep(){try{const x=new (window.AudioContext||window.webkitAudioContext)(),o=x.createOscillator();o.frequency.value=880;o.connect(x.destination);o.start();o.stop(x.currentTime+.25)}catch(e){}}
+/* render */
+function render(){
+ $('today').textContent=iso(new Date(todayU()))+' AD · '+(bsS(iso(new Date(todayU()))))+' BS';
+ const L=DB.agreements.map(a=>({a,s:st(a),d:daysLeft(a)}));
+ const cnt=k=>L.filter(x=>k(x)).length;
+ $('stats').innerHTML=[['Total',L.length],['Under 30 days',cnt(x=>x.s.k==='notice')],['Under 15 days',cnt(x=>x.s.k==='warn')],['Under 7 days',cnt(x=>x.s.k==='crit')],['Needs action',cnt(x=>x.s.k==='lapsed')],['Expired',cnt(x=>x.s.k==='expired')]].map(([n,v])=>`<div class="stat"><b>${v}</b><span>${n}</span></div>`).join('');
+ let bn='';
+ L.filter(x=>x.s.k==='lapsed').forEach(x=>bn+=`<div class="bn ex">⛔ ${esc(x.a.title)} expired ${-x.d} day(s) ago — mark as Renewed or Expired.</div>`);
+ L.filter(x=>x.s.k==='crit').forEach(x=>bn+=`<div class="bn cr">🚨 ${esc(x.a.title)} — only ${x.d} day(s) left (${x.a.end} AD / ${bsS(x.a.end)} BS)</div>`);
+ L.filter(x=>x.s.k==='warn').forEach(x=>bn+=`<div class="bn wa">⚠ ${esc(x.a.title)} — ${x.d} days left (${x.a.end} AD / ${bsS(x.a.end)} BS)</div>`);
+ L.filter(x=>x.s.k==='notice').forEach(x=>bn+=`<div class="bn no">🔔 ${esc(x.a.title)} renews in ${x.d} days</div>`);
+ $('banners').innerHTML=bn;
+ const q=$('q').value.toLowerCase(),f=$('flt').value;
+ const rows=L.filter(x=>{const a=x.a;if(q&&!(a.title+a.party+a.notes+a.contact).toLowerCase().includes(q))return false;
+  if(f==='soon')return['notice','warn','crit'].includes(x.s.k);if(f==='active')return a.status!=='expired'&&x.d>=0;if(f==='lapsed')return x.s.k==='lapsed';if(f==='renewed')return(a.history||[]).length>0;if(f==='expired')return a.status==='expired';return true}).sort((a,b)=>a.a.end<b.a.end?-1:1);
+ $('rows').innerHTML=rows.map((x,i)=>{const a=x.a,h=a.history||[],last=h[h.length-1];
+  const dl=a.status==='expired'?'—':x.d<0?`${-x.d}d overdue`:x.d+' day(s)';
+  return`<tr class="${x.s.k==='crit'?'blink':x.s.k==='lapsed'?'lap':''}"><td>${i+1}</td><td><b>${esc(a.title)}</b><small>${esc(a.party)} · ${esc(a.type)}${a.value?' · NPR '+Number(a.value).toLocaleString():''}</small>${h.length?`<small>↻ Renewed ${h.length}× · last ref: ${esc(last.ref)} on ${last.on}</small>`:''}${a.notes?`<small>${esc(a.notes)}</small>`:''}</td>
+  <td>${a.end}</td><td>${bsS(a.end)}<small>${bsL(a.end)}</small></td><td class="dl">${dl}</td><td><span class="pill ${x.s.c}">${x.s.t}</span></td>
+  <td><button class="s" data-a="ren" data-i="${a.id}">Renew</button> <button class="s" data-a="edit" data-i="${a.id}">Edit</button> <button class="s d" data-a="del" data-i="${a.id}">Delete</button></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:26px">No agreements yet. Click “+ New agreement”.</td></tr>';
+}
+$('rows').onclick=e=>{const b=e.target.closest('button');if(!b)return;const a=DB.agreements.find(x=>x.id===b.dataset.i);if(!a)return;
+ if(b.dataset.a==='edit')openForm(a);if(b.dataset.a==='ren')openRen(a);
+ if(b.dataset.a==='del'&&confirm('Delete "'+a.title+'" permanently?')){DB.agreements=DB.agreements.filter(x=>x!==a);save();render()}};
+$('q').oninput=$('flt').onchange=render;
+/* CRUD form */
+function openForm(a){$('fTitle').textContent=a?'Edit agreement':'New agreement';
+ $('f_id').value=a?a.id:'';$('f_title').value=a?a.title:'';$('f_party').value=a?a.party:'';$('f_type').value=a?a.type:'Service';
+ setD('f_start',a?a.start:iso(new Date(todayU())));setD('f_end',a?a.end:'');$('f_value').value=a?a.value:'';$('f_contact').value=a?a.contact:'';$('f_notes').value=a?a.notes:'';$('dForm').showModal()}
+$('bAdd').onclick=()=>openForm();$('fCancel').onclick=()=>$('dForm').close();
+$('fSave').onclick=()=>{const t=$('f_title').value.trim(),en=$('f_end_ad').value,sd=$('f_start_ad').value;
+ if(!t)return toast('Title is required','wa');if(!en)return toast('Valid expiry date is required (check BS format)','wa');if(sd&&sd>en)return toast('Start date is after expiry','wa');
+ const id=$('f_id').value,o={title:t,party:$('f_party').value.trim(),type:$('f_type').value,start:sd,end:en,value:$('f_value').value,contact:$('f_contact').value.trim(),notes:$('f_notes').value.trim()};
+ if(id){const a=DB.agreements.find(x=>x.id===id);const wasEnd=a.end;Object.assign(a,o);if(a.status==='expired'&&en!==wasEnd&&daysLeft(a)>=0)a.status='active'}
+ else DB.agreements.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),status:'active',history:[],...o});
+ save();$('dForm').close();render();toast('Saved');check()};
+/* renew */
+let renId=null;
+function openRen(a){renId=a.id;$('r_id').value=a.id;$('rInfo').textContent=a.title+' — current expiry '+a.end+' AD / '+bsS(a.end)+' BS';
+ setD('r_start',addDays(a.end,1));setD('r_end','');$('r_value').value=a.value||'';$('r_ref').value='';$('r_by').value='';$('r_rem').value='';$('r_on').value=iso(new Date(todayU()));$('dRen').showModal()}
+$('rCancel').onclick=()=>$('dRen').close();
+$('rSave').onclick=()=>{const a=DB.agreements.find(x=>x.id===renId),s=$('r_start_ad').value,e=$('r_end_ad').value,ref=$('r_ref').value.trim();
+ if(!s||!e)return toast('New start and expiry dates are required','wa');if(e<=s)return toast('New expiry must be after new start','wa');if(!ref)return toast('Renewal reference is required','wa');
+ (a.history=a.history||[]).push({on:$('r_on').value||iso(new Date(todayU())),prevStart:a.start,prevEnd:a.end,prevValue:a.value,ref,by:$('r_by').value.trim(),remarks:$('r_rem').value.trim()});
+ a.start=s;a.end=e;a.value=$('r_value').value;a.status='active';save();$('dRen').close();snooze.delete(a.id);render();toast('Agreement renewed ✔');check()};
+/* expiry prompt */
+const snooze=new Set();let expId=null;
+function check(){if(document.querySelector('dialog[open]'))return;
+ const a=DB.agreements.find(x=>st(x).k==='lapsed'&&!snooze.has(x.id));if(!a)return;expId=a.id;
+ $('eInfo').innerHTML=`<b>${esc(a.title)}</b> (${esc(a.party)}) expired on ${a.end} AD / ${bsS(a.end)} BS — ${-daysLeft(a)} day(s) ago.`;$('dExp').showModal();beep()}
+$('eLater').onclick=()=>{snooze.add(expId);$('dExp').close()};
+$('eExp').onclick=()=>{const a=DB.agreements.find(x=>x.id===expId);a.status='expired';a.expiredOn=iso(new Date(todayU()));save();$('dExp').close();render();check()};
+$('eRen').onclick=()=>{$('dExp').close();openRen(DB.agreements.find(x=>x.id===expId))};
+/* recurring alerts */
+const alerted=new Set();
+function tick(first){const day=iso(new Date(todayU()));DB.agreements.forEach(a=>{if(a.status==='expired')return;const d=daysLeft(a);if(!(d>=0&&d<30))return;const k=a.id+'|'+day+'|'+(d<7?'c':d<15?'w':'n');if(alerted.has(k))return;alerted.add(k);
+ if(d<7){toast(`🚨 ${a.title}: ${d} day(s) left!`,'cr');beep()}else if(d<15)toast(`⚠ ${a.title}: ${d} days left`,'wa');else if(first)toast(`🔔 ${a.title}: renews in ${d} days`)})}
+/* backup / restore */
+async function saveFile(name,data){try{const dl=window.claude&&await claude.use('downloads');if(dl){await dl.save({filename:name,data});return}}catch(e){if(e&&e.code==='declined')return}
+ const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));const l=document.createElement('a');l.href=u;l.download=name;l.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+const stamp=()=>iso(new Date(todayU()));
+$('bJson').onclick=()=>saveFile(`agreements-backup-${stamp()}.json`,JSON.stringify({app:'agreement-renewal-tracker',version:1,exported:new Date().toISOString(),...DB},null,2));
+$('bXls').onclick=()=>{if(!window.XLSX)return toast('Excel library not loaded','wa');
+ const A=DB.agreements.map(a=>({ID:a.id,Title:a.title,Party:a.party,Type:a.type,'Start AD':a.start,'Start BS':bsS(a.start),'Expiry AD':a.end,'Expiry BS':bsS(a.end),Value:a.value,Contact:a.contact,Status:a.status,'Expired On':a.expiredOn||'',Notes:a.notes}));
+ const H=[];DB.agreements.forEach(a=>(a.history||[]).forEach(h=>H.push({ID:a.id,Title:a.title,'Renewed On':h.on,'Prev Start':h.prevStart,'Prev End':h.prevEnd,'Prev Value':h.prevValue,Ref:h.ref,'Approved By':h.by,Remarks:h.remarks})));
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(A),'Agreements');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(H),'Renewals');
+ saveFile(`agreements-${stamp()}.xlsx`,new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})]))};
+$('bRest').onclick=()=>$('fileIn').click();
+$('fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{let ag,cal=null;
+  if(/\.json$/i.test(f.name)){const j=JSON.parse(await f.text());if(!Array.isArray(j.agreements))throw 0;ag=j.agreements;cal=j.cal}
+  else{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),R=XLSX.utils.sheet_to_json(wb.Sheets['Agreements']||wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false}),H=wb.Sheets['Renewals']?XLSX.utils.sheet_to_json(wb.Sheets['Renewals'],{defval:'',raw:false}):[];
+   const fix=(ad,bs)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(ad))return ad;const m=String(bs).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/),d=m&&bsToAd(+m[1],+m[2],+m[3]);return d?iso(d):''};
+   ag=R.map(r=>({id:r.ID||Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:r.Title,party:r.Party,type:r.Type||'Other',start:fix(r['Start AD'],r['Start BS']),end:fix(r['Expiry AD'],r['Expiry BS']),value:r.Value,contact:r.Contact,status:r.Status==='expired'?'expired':'active',expiredOn:r['Expired On'],notes:r.Notes,history:[]})).filter(a=>a.title&&a.end);
+   H.forEach(h=>{const a=ag.find(x=>x.id===h.ID);if(a)a.history.push({on:h['Renewed On'],prevStart:h['Prev Start'],prevEnd:h['Prev End'],prevValue:h['Prev Value'],ref:h.Ref,by:h['Approved By'],remarks:h.Remarks})})}
+  ag=ag.map(normAg).filter(Boolean);
+  if(!confirm(`Restore ${ag.length} agreement(s)? This REPLACES current data.`))return;
+  DB.agreements=ag;if(okCal(cal))DB.cal=cal;save();render();toast('Restore complete')}catch(err){toast('Invalid or unreadable backup file','wa')}};
+/* BS calendar editor */
+$('bCal').onclick=()=>{$('calTx').value=JSON.stringify(DB.cal,null,1).replace(/\n\s+(\d)/g,' $1').replace(/\n\s*\]/g,']');$('dCal').showModal()};
+$('calCancel').onclick=()=>$('dCal').close();
+$('calRst').onclick=()=>{if(confirm('Reset calendar to built-in 2080–2090?')){DB.cal=clone(DEF);save();$('dCal').close();render()}};
+$('calSave').onclick=()=>{try{const c=JSON.parse($('calTx').value);const ys=Object.keys(c).map(Number).sort((a,b)=>a-b);
+ if(ys[0]!==2080)throw'First year must be 2080';ys.forEach((y,i)=>{if(i&&y!==ys[i-1]+1)throw'Years must be continuous (missing '+(ys[i-1]+1)+')';const m=c[y];if(!Array.isArray(m)||m.length!==12||m.some(n=>!(n>=28&&n<=32)))throw'Year '+y+' needs 12 values between 28 and 32'});
+ DB.cal=c;save();$('dCal').close();render();toast('Calendar updated')}catch(e){toast(typeof e==='string'?e:'Invalid JSON','wa')}};
+$('bTheme').onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=d?'light':'dark'};
+render();tick(true);setTimeout(check,600);
+setInterval(()=>{render();check()},60000);setInterval(()=>tick(false),30000);
+</script>
+</body>
+</html>

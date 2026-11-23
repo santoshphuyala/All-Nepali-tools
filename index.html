@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#b3261e">
 <title>Nepali Utility Tools – Dashboard</title>
 <script>try{var t=localStorage.getItem('np-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
@@ -58,6 +59,11 @@ h1{margin:0;line-height:1.15}
 .card[data-cat="Language"]{--c:var(--lang)}
 .card[data-cat="Money"]{--c:var(--money)}
 .card[data-cat="Health"]{--c:var(--health)}
+.card[data-cat="Life"]{--c:#c2410c}
+.card[data-cat="Productivity"]{--c:#2f6fed}
+.card[data-cat="Engineering"]{--c:#0f766e}
+.card[data-cat="Dates"]{--c:#7c3aed}
+.card[data-cat="Finance"]{--c:#0e7490}
 .card:hover,.card:focus-within{border-color:var(--c);transform:translateY(-2px);box-shadow:0 8px 20px -14px var(--c)}
 a.open{display:flex;gap:14px;align-items:flex-start;padding:16px 56px 16px 16px;color:inherit;text-decoration:none;border-radius:14px;height:100%}
 a.open:focus-visible{outline-color:var(--c)}
@@ -86,7 +92,20 @@ footer{text-align:center;color:var(--mut);font-size:.85rem;padding:26px 0 10px}
 .vbar span{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .viewer iframe{flex:1;border:0;width:100%;background:var(--bg)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.card:hover{transform:none}}
-@media (max-width:520px){.hero{margin-bottom:16px}.seg{margin-left:auto}}
+@media (max-width:520px){.hero{margin-bottom:16px}.seg{margin-left:auto}.sw{flex-basis:200px}}
+@media (max-width:340px){.grid{grid-template-columns:1fr}.sw{flex-basis:160px}}
+.hbtns{display:flex;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+dialog.bkd{border:1px solid var(--bd);border-radius:14px;background:var(--bg);color:var(--fg);width:min(580px,94vw);max-height:90vh;padding:0;overflow:auto}
+dialog.bkd::backdrop{background:rgba(0,0,0,.5)}
+.bkb{padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.bkh{display:flex;justify-content:space-between;align-items:center;gap:8px}.bkh h2{margin:0;font-size:1.15rem}
+.bkb h3{font-size:1rem;margin:14px 0 6px}.bkb hr{border:0;border-top:1px solid var(--bd);margin:14px 0}
+.bkb button{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px}.bkb button:hover{border-color:var(--ac)}
+.bkb button.bkp{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600}.bkb button.bkd2{border-color:var(--ac);color:var(--ac)}
+.bkb button:disabled{opacity:.5}
+.bkn{color:var(--mut);font-size:.85rem;margin:6px 0}.bkul{list-style:none;margin:8px 0;padding:0;font-size:.92rem}.bkul li{padding:5px 0;border-bottom:1px solid var(--bd)}.bkul small{display:block;color:var(--mut)}
+.bkrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.bkpick label{display:block;padding:4px 0}
+#bkm{white-space:pre-line;font-size:.9rem;margin:10px 0 0}#bkm.err{color:var(--ac)}
 </style>
 </head>
 <body>
@@ -96,7 +115,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem;padding:26px 0 10px}
   <h1><span class="dev" lang="ne">औजारहरू</span><span class="en">Nepali Utility Tools</span></h1>
   <p class="sub">Converters and calculators that run in your browser. Nothing you type or upload leaves your device.</p>
  </div>
- <button class="tbtn" id="theme" type="button" aria-label="Change colour theme"></button>
+ <div class="hbtns"><button class="tbtn" id="bkopen" type="button">⇩ Backup</button><button class="tbtn" id="theme" type="button" aria-label="Change colour theme"></button><button class="tbtn" id="wstart" type="button" hidden>Start with Windows</button></div>
 </header>
 
 <div class="bar">
@@ -115,6 +134,16 @@ footer{text-align:center;color:var(--mut);font-size:.85rem;padding:26px 0 10px}
 <ul class="grid" id="grid"></ul>
 <footer>Developed by Santosh Phuyal</footer>
 </main>
+<dialog class="bkd" id="bkd" aria-labelledby="bkt"><div class="bkb">
+ <div class="bkh"><h2 id="bkt">Backup &amp; restore everything</h2><button id="bkx" type="button">Close</button></div>
+ <p class="bkn">Your data is stored only in this browser. Clearing site data erases it, so keep a backup file somewhere safe.</p>
+ <ul class="bkul" id="bkl"></ul>
+ <div class="bkrow"><button class="bkp" id="bkj" type="button">Back up everything (JSON)</button><button id="bkxl" type="button">Back up everything (Excel)</button></div>
+ <p class="bkn">JSON keeps everything, including prescription photos and PDFs. Excel is readable and editable but holds no prescription files.</p>
+ <hr><h3>Restore from a backup file</h3>
+ <input type="file" id="bkf" accept=".json,.xlsx"><div class="bkpick" id="bkr"></div>
+ <p id="bkm" role="status"></p></div></dialog>
+
 <div class="viewer" id="viewer" hidden>
  <div class="vbar"><button id="vback" type="button">← All tools</button><span id="vtitle"></span></div>
  <iframe id="vframe" title="Tool" allow="clipboard-write; clipboard-read"></iframe>
@@ -123,7 +152,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem;padding:26px 0 10px}
 <script>
 /* To add a new tool: upload its .html file beside this one, then add one object to TOOLS.
    cat must be one of the names in CATS (add a new group there and a --c colour rule in the CSS if needed). */
-const CATS=['Language','Money','Health'];
+const CATS=['Language','Money','Health','Life','Productivity','Engineering','Dates','Finance'];
 const TOOLS=[
  {id:'font',title:'Nepali Font Converter',cat:'Language',icon:'अ',href:'Nepali_Font_Converter_v4.html',
   desc:'Preeti, Kantipur, Fantasy Himali, Sagarmatha and Kanchan to Unicode and back, keeping layout and formatting.',
@@ -142,7 +171,28 @@ const TOOLS=[
   feat:['Due alerts','Repeating bills','Expenses','Backup'],tags:'bills subscription insurance renewal reminder netflix internet electricity utilities due'},
  {id:'medbox',title:'MedBox',cat:'Health',icon:'💊',href:'MedBox.html',
   desc:'Family medicine tracker: daily doses, stock forecast, refills, expenses and prescriptions.',
-  feat:['Dose times','Stock forecast','Prescriptions','Family'],tags:'medicine medbox tablets dose stock refill prescription family health pharmacy'}
+  feat:['Dose times','Stock forecast','Prescriptions','Family'],tags:'medicine medbox tablets dose stock refill prescription family health pharmacy'},
+ {id:'vehicle',title:'Vehicle Tracker',cat:'Life',icon:'🚗',href:'vehicle-tracker.html',
+  desc:'Track vehicle documents, service due dates and odometer-based reminders.',
+  feat:['Insurance','License','Service','Backup'],tags:'vehicle car bike insurance license service odometer paper tracker'},
+ {id:'agr',title:'Agreement Renewal Tracker',cat:'Life',icon:'📄',href:'Agreement%20Renewal%20Tracker.html',
+  desc:'Track agreement expiry dates in AD and BS, with renewal history and alerts.',
+  feat:['AD / BS dates','Renewal history','Expiry alerts','Backup'],tags:'agreement renewal tracker contract expiry vendor lease service insurance license bs ad alert'},
+ {id:'todo',title:'To-Do Manager',cat:'Productivity',icon:'✅',href:'To-Do%20Manager.html',
+  desc:'Plan tasks with priorities, dates, categories, subtasks, renewals and calendar view.',
+  feat:['Calendar','Priorities','Reminders','Backup'],tags:'todo task task manager checklist reminder calendar priority subtask'},
+ {id:'units',title:'Engineering Unit Converter',cat:'Engineering',icon:'⚙️',href:'Engineering%20Unit%20Converter.html',
+  desc:'Convert length, area, volume, mass, pressure, energy, power, speed, force, torque and flow.',
+  feat:['12 categories','Temperature','Nepali land units'],tags:'engineering units converter length area volume mass pressure energy power speed force torque flow'},
+ {id:'calendar',title:'Nepali Calendar',cat:'Dates',icon:'📅',href:'final%20Nepali%20Calendar%20(BS_AD).html',
+  desc:'BS and AD calendar with holidays, reminders, expenses and date conversion.',
+  feat:['BS 2000–2090','Holidays','Reminders','Converter'],tags:'nepali calendar baisakh ashadh bs ad date converter holiday reminder'},
+ {id:'ins',title:'Insurance Policy Reminder',cat:'Finance',icon:'🛡️',href:'Insurance%20Policy%20Reminder.html',
+  desc:'Track insurance policy expiry in AD and BS, with renewal and expired workflows.',
+  feat:['AD / BS dates','Expiry alerts','Renew / expired','Backup'],tags:'insurance policy reminder renewal expiry company premium vehicle health life property travel bs ad alert'},
+ {id:'fd',title:'FD Manager',cat:'Finance',icon:'🏦',href:'FD_Manager_Nepal.html',
+  desc:'Manage fixed deposits, interest calculations, maturity plans and FD records.',
+  feat:['Interest calculator','Maturity table','Records','Nepali'],tags:'fd fixed deposit fd manager bank interest maturity Nepal deposit'}
 ];
 
 const $=id=>document.getElementById(id);
@@ -168,6 +218,7 @@ function applyTheme(){
  try{if(theme==='auto')localStorage.removeItem('np-theme');else localStorage.setItem('np-theme',theme)}catch(e){}
 }
 $('theme').onclick=()=>{theme=theme==='auto'?'light':theme==='light'?'dark':'auto';applyTheme()};
+const ws=$('wstart');if(window.nepaliDesktop){ws.hidden=false;const setW=v=>{ws.setAttribute('aria-pressed',v);ws.textContent='Start with Windows: '+(v?'On':'Off')};window.nepaliDesktop.getStartWithWindows().then(setW);ws.onclick=async()=>{const on=ws.getAttribute('aria-pressed')!=='true';setW(await window.nepaliDesktop.setStartWithWindows(on))}}
 
 /* view */
 function applyView(){
@@ -192,7 +243,8 @@ const embedded=t=>!!(window.TOOL_HTML&&window.TOOL_HTML[t.id]);
 let openId=null;
 function syncFrame(){
  try{const d=$('vframe').contentDocument,r=d&&d.documentElement;if(!r)return;
-  if(theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',theme)}catch(e){}
+  if(theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',theme);
+  if(!r._npBack){r._npBack=1;d.addEventListener('click',e=>{const a=e.target&&e.target.closest?e.target.closest('a[href="index.html"]'):null;if(!a)return;e.preventDefault();try{const p=window.parent;if(p&&p.closeTool){p.closeTool(false);return}}catch(x){}location.href='index.html'},true)}}catch(e){}
 }
 function openTool(t,fromPop){
  const f=$('vframe');$('vtitle').textContent=t.title;
@@ -300,7 +352,192 @@ document.addEventListener('keydown',e=>{
  else if(e.key==='ArrowUp'&&cards[0]===cur){e.preventDefault();$('q').focus()}
 });
 
+
+/* ===== Backup & restore everything (JSON and Excel) ===== */
+const BK_VER=4;
+const IDBS={kharcha:{name:'kharcha',stores:['tx','shop','wish','meta']},medbox:{name:'medbox',stores:['people','meds','exp','rx']},
+ vehicle:{name:'vehicle-tracker',stores:['kv'],key:'db'},todo:{name:'todo-db',stores:['tasks','meta']},calendar:{name:'npcal',stores:['items','kv']}};
+const LSK={trip:'tripSplitterV1',bills:'billsApp.v1',fd:'fd-nepal-v1',agr:'agr_tracker_v1',ins:'pr_pol'};
+const FD_EXTRA=['fd-profs','fd-pid','fd-bsov','fd-tpl','fd-dm','fd-rem','fd-lang','fd-banks','fd-last','fd-lastbk','fd-dirty','fd-sum-v1'];
+const TOOL_NAME={kharcha:'Kharcha Tracker',medbox:'MedBox',trip:'Trip Expense Splitter',bills:'Bills & Renewals Tracker',font:'Font Converter saved fixes',prefs:'Dashboard settings (pins, view, theme)',vehicle:'Vehicle Tracker',agr:'Agreement Renewal Tracker',ins:'Insurance Policy Reminder',todo:'To-Do Manager',units:'Engineering Unit Converter',calendar:'Nepali Calendar',fd:'FD Manager'};
+const KH_SCHEMA=d=>{const t=d.createObjectStore('tx',{keyPath:'id',autoIncrement:true});t.createIndex('date','date');t.createIndex('type','type');t.createIndex('cat','cat');d.createObjectStore('shop',{keyPath:'id',autoIncrement:true}).createIndex('done','done');d.createObjectStore('wish',{keyPath:'id',autoIncrement:true}).createIndex('prio','prio');d.createObjectStore('meta',{keyPath:'k'})};
+const MB_SCHEMA=d=>['people','meds','exp','rx'].forEach(n=>d.createObjectStore(n,{keyPath:'id',autoIncrement:true}));
+const rq=r=>new Promise((s,j)=>{r.onsuccess=()=>s(r.result);r.onerror=()=>j(r.error)});
+/* Opens an existing database only. Never creates an empty one (that would stop the tool from building its tables). */
+function idbOpenExisting(name){return new Promise(res=>{try{const r=indexedDB.open(name);r.onupgradeneeded=()=>{try{r.transaction.abort()}catch(e){}};r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);r.onblocked=()=>res(null)}catch(e){res(null)}})}
+function idbCreate(name,schema){return new Promise((res,rej)=>{const r=indexedDB.open(name);r.onupgradeneeded=()=>schema(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('Another tab is using this data. Close it and try again.'))})}
+function idbReplace(db,data){return new Promise((res,rej)=>{const names=Object.keys(data),tr=db.transaction(names,'readwrite');tr.oncomplete=()=>res();tr.onerror=()=>rej(tr.error);tr.onabort=()=>rej(tr.error||new Error('Write was cancelled'));for(const n of names){const st=tr.objectStore(n);st.clear();for(const o of data[n])st.put(o)}})}
+const blob2url=b=>new Promise((s,j)=>{const f=new FileReader();f.onload=()=>s(f.result);f.onerror=()=>j(f.error);f.readAsDataURL(b)});
+function url2blob(u){const [h,b]=u.split(','),t=atob(b),a=new Uint8Array(t.length);for(let i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return new Blob([a],{type:(h.match(/:(.*?);/)||[])[1]||''})}
+const lsGet=k=>{try{const v=localStorage.getItem(k);return v===null?null:JSON.parse(v)}catch(e){return null}};
+const lsSet=(k,v)=>localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+async function readIdb(key,files){const c=IDBS[key],db=await idbOpenExisting(c.name);if(!db)return null;
+ try{
+  if(key==='vehicle'){const v=await rq(db.transaction('kv').objectStore('kv').get('db'));return v&&typeof v==='object'?{...v,checklist:Array.isArray(v.checklist)?v.checklist:[]}:null}
+  if(key==='todo'){const tr=db.transaction(['tasks','meta'],'readonly'),tasks=await rq(tr.objectStore('tasks').getAll()),ms=tr.objectStore('meta');
+   const [presets,settings,templates]=await Promise.all([rq(ms.get('presets')),rq(ms.get('settings')),rq(ms.get('templates'))]);
+   return{tasks,presets:presets||{},settings:settings||{},templates:Array.isArray(templates)?templates:[]}}
+  const out={};for(const n of c.stores)out[n]=db.objectStoreNames.contains(n)?await rq(db.transaction(n).objectStore(n).getAll()):[];
+  if(key==='calendar'){const kv=Object.fromEntries(out.kv.map(m=>[m.k,m.v])),holidays=kv.npc_hol||lsGet('npc_hol')||{},lengths=kv.npc_len||lsGet('npc_len')||{};return{items:out.items,holidays,lengths}}
+  if(key==='medbox')out.rx=await Promise.all(out.rx.map(async({blob,...o})=>({...o,data:files&&blob?await blob2url(blob):null})));
+  return out}finally{db.close()}}
+async function makeSnapshot(files=true){const t={};
+ for(const k of Object.keys(IDBS)){const d=await readIdb(k,files);if(d)t[k]=d}
+ const trip=lsGet(LSK.trip);if(trip&&Array.isArray(trip.events))t.trip=trip;
+ const bills=lsGet(LSK.bills);if(bills&&Array.isArray(bills.reminders))t.bills=bills;
+ const agr=lsGet(LSK.agr);if(agr&&Array.isArray(agr.agreements))t.agr={agreements:agr.agreements,cal:agr.cal&&typeof agr.cal==='object'?agr.cal:{}};
+ const ins=lsGet(LSK.ins);if(Array.isArray(ins)){const cal=lsGet('pr_cal');t.ins={policies:ins,calendar:cal&&typeof cal==='object'?cal:{}}};
+ let hasFd=localStorage.getItem('fd-profs')!==null||localStorage.getItem(LSK.fd)!==null||localStorage.getItem('fd-sum-v1')!==null||lsGet('fd-dirty')!==null;
+  if(!hasFd)for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith(LSK.fd+':')){hasFd=true;break}}
+  if(hasFd){
+  const meta=[];try{meta.push(...(JSON.parse(localStorage.getItem('fd-profs')||'[]')))}catch(e){}
+  for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.startsWith(LSK.fd+':')){const id=key.slice(LSK.fd.length+1);if(!meta.some(p=>p.id===id))meta.push({id,name:id})}}
+  const profiles=[],seen=new Set();
+  const addProfile=(id,name,key)=>{if(seen.has(id))return;seen.add(id);let f=[];try{f=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){};profiles.push({id,name,fds:Array.isArray(f)?f:[]})};
+  for(const p of meta)addProfile(String(p.id),p.name||p.id,p.id==='p1'?LSK.fd:LSK.fd+':'+p.id);
+  const fds=lsGet(LSK.fd);if(Array.isArray(fds)&&fds.length&&!seen.has('p1'))profiles.push({id:'p1',name:'Personal',fds});
+  if(!profiles.length){const v=lsGet(LSK.fd);if(Array.isArray(v))profiles.push({id:'p1',name:'Personal',fds:v})}
+  const extra={};for(const k of FD_EXTRA){try{const v=localStorage.getItem(k);if(v!==null)extra[k]=JSON.parse(v)}catch(e){}}
+  t.fd={profiles,templates:lsGet('fd-tpl')||[],settings:extra};
+ }
+ const fx=lsGet('npfix')||{},ru=lsGet('nprules')||[];if(Object.keys(fx).length||ru.length)t.font={fixes:fx,rules:ru};
+ let th=null;try{th=localStorage.getItem('np-theme')}catch(e){}
+ t.prefs={pins:lsGet('np-pins')||[],recent:lsGet('np-recent')||[],view:lsGet('np-view')||'grid',theme:th};
+ return{app:'nepali-tools-all',v:BK_VER,at:new Date().toISOString(),tools:t}}
+const L=a=>(a||[]).length;
+const DESC={kharcha:d=>`${L(d.tx)} transactions, ${L(d.shop)} shopping, ${L(d.wish)} wishlist`,
+ medbox:d=>`${L(d.people)} people, ${L(d.meds)} medicines, ${L(d.exp)} expenses, `+(d.rx?`${L(d.rx)} prescriptions`:'prescription files not in this file (existing ones are kept)'),
+ trip:d=>`${L(d.events)} event(s), ${(d.events||[]).reduce((a,e)=>a+L(e.expenses),0)} expenses`,
+ bills:d=>`${L(d.reminders)} reminders, ${L(d.expenses)} expenses`,
+ agr:d=>`${L(d.agreements)} agreements, ${L((d.agreements||[]).flatMap(a=>a.history||[]))} renewals`,
+ ins:d=>`${L(d.policies)} insurance policies`,
+ vehicle:d=>`${L(d.vehicles)} vehicles, ${L(d.renewals)} renewals, ${L(d.services)} services`,
+ todo:d=>`${L(d.tasks)} tasks, ${Object.keys(d.presets||{}).length} saved filters`,
+ calendar:d=>`${L(d.items)} dated items, ${Object.keys(d.holidays||{}).reduce((a,h)=>a+L(h),0)} holidays`,
+ fd:d=>`${L((d.profiles||[]).flatMap(p=>p.fds||[]))} fixed deposits across ${L(d.profiles)} profiles`,
+ font:d=>`${Object.keys(d.fixes||{}).length} word fixes, ${L(d.rules)} rules`,prefs:()=>'pinned tools, layout and theme'};
+/* ---- Excel: one sheet per table. Columns ending :json hold lists/objects. ---- */
+const rowsOf=a=>(a||[]).map(o=>{const r={};for(const k in o){const v=o[k];if(v===undefined||v===null)continue;if(typeof v==='object')r[k+':json']=JSON.stringify(v);else r[k]=v}return r});
+const objsOf=rows=>(rows||[]).map(r=>{const o={};for(const k in r){if(k.endsWith(':json')){try{o[k.slice(0,-5)]=JSON.parse(r[k])}catch(e){}}else o[k]=r[k]}return o});
+const kvRows=o=>Object.entries(o).map(([key,value])=>({key,value}));
+function loadXLSX(){return window.XLSX?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the Excel library. It needs internet the first time.'));document.head.appendChild(s)})}
+function toWorkbook(snap){const wb=XLSX.utils.book_new(),T=snap.tools,add=(n,rows)=>{if(rows&&rows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),n.slice(0,31))};
+ add('_About',kvRows({app:'nepali-tools-all',version:String(BK_VER),created:snap.at,tools:Object.keys(T).join(','),note:'Edit values only. Columns ending :json hold lists and are read back as lists. Prescription files are only in the JSON backup.'}));
+ if(T.kharcha){const k=T.kharcha;add('Kharcha_tx',rowsOf(k.tx));add('Kharcha_shop',rowsOf(k.shop));add('Kharcha_wish',rowsOf(k.wish));add('Kharcha_meta',rowsOf(k.meta))}
+ if(T.medbox){const m=T.medbox;add('MedBox_people',rowsOf(m.people));add('MedBox_meds',rowsOf(m.meds));add('MedBox_exp',rowsOf(m.exp));add('MedBox_rx_info',rowsOf((m.rx||[]).map(({data,...o})=>o)))}
+ if(T.trip){const t=T.trip,E=t.events||[];add('Trip_events',rowsOf(E.map(e=>({id:e.id,name:e.name}))));add('Trip_friends',rowsOf(E.flatMap(e=>(e.friends||[]).map(f=>({eventId:e.id,id:f.id,name:f.name})))));add('Trip_expenses',rowsOf(E.flatMap(e=>(e.expenses||[]).map(x=>({eventId:e.id,...x})))));add('Trip_currencies',Object.entries(t.cur||{}).map(([code,rate])=>({code,rate})));add('Trip_settings',kvRows({disp:t.disp||'NPR'}))}
+ if(T.bills){add('Bills_reminders',rowsOf(T.bills.reminders));add('Bills_expenses',rowsOf(T.bills.expenses));add('Bills_settings',kvRows({cur:T.bills.cur||'Rs'}))}
+ if(T.agr){const a=T.agr;add('Agr_agreements',rowsOf((a.agreements||[]).map(x=>({...x,history:undefined}))));add('Agr_renewals',rowsOf((a.agreements||[]).flatMap(x=>(x.history||[]).map(h=>({ID:x.id,Title:x.title,On:h.on,PrevStart:h.prevStart,PrevEnd:h.prevEnd,PrevValue:h.prevValue,Ref:h.ref,By:h.by,Remarks:h.remarks})))));add('Agr_calendar',rowsOf(Object.entries(a.cal||{}).map(([year,lengths])=>({year,lengths:JSON.stringify(lengths)}))))}
+ if(T.ins){const i=T.ins;add('Ins_policies',rowsOf(i.policies||[]));add('Ins_calendar',rowsOf(Object.entries(i.calendar||{}).map(([year,lengths])=>({year,lengths:JSON.stringify(lengths)}))))}
+ if(T.vehicle){const v=T.vehicle;add('Vehicle_vehicles',rowsOf(v.vehicles));add('Vehicle_renewals',rowsOf(v.renewals));add('Vehicle_services',rowsOf((v.services||[]).map(s=>({...s,tasks:JSON.stringify(s.tasks||[])}))));add('Vehicle_checklist',rowsOf((v.checklist||[]).map(task=>({task}))))}
+ if(T.todo){add('Todo_tasks',rowsOf(T.todo.tasks));add('Todo_meta',rowsOf([...(T.todo.presets?[{k:'presets',value:JSON.stringify(T.todo.presets)}]:[]),...(T.todo.settings?[{k:'settings',value:JSON.stringify(T.todo.settings)}]:[]),...(T.todo.templates&&T.todo.templates.length?[{k:'templates',value:JSON.stringify(T.todo.templates)}]:[])]))}
+ if(T.calendar){const c=T.calendar;
+  add('Calendar_items',rowsOf((c.items||[]).map(i=>({...i,date:JSON.stringify(i.date)}))));
+  add('Calendar_holidays',rowsOf(Object.entries(c.holidays||{}).flatMap(([year,list])=>(list||[]).map(h=>({year,month:h.m,day:h.d,name:h.n})))));
+  add('Calendar_lengths',rowsOf(Object.entries(c.lengths||{}).map(([year,lengths])=>({year,lengths:JSON.stringify(lengths)}))))}
+ if(T.fd){const f=T.fd;add('FD_profiles',rowsOf(f.profiles.map(p=>({id:p.id,name:p.name}))));add('FD_records',rowsOf((f.profiles||[]).flatMap(p=>(p.fds||[]).map(o=>({...o,profile:p.id})))));add('FD_templates',rowsOf(f.templates||[]));add('FD_settings',rowsOf(Object.entries(f.settings||{}).map(([key,value])=>({key,value:JSON.stringify(value)}))))}
+ if(T.font){add('Fonts_fixes',kvRows(T.font.fixes||{}));add('Fonts_rules',rowsOf(T.font.rules))}
+ if(T.prefs){const p=T.prefs;add('Prefs',kvRows({pins:JSON.stringify(p.pins||[]),recent:JSON.stringify(p.recent||[]),view:p.view||'grid',theme:p.theme||''}))}
+ return wb}
+function fromWorkbook(wb){const R=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n]):[],O=n=>objsOf(R(n)),KV=n=>Object.fromEntries(R(n).filter(r=>r.key!==undefined).map(r=>[String(r.key),r.value])),ab=KV('_About');
+ if(ab.app!=='nepali-tools-all')throw new Error('This Excel file was not made by "Back up everything".');
+ const have=String(ab.tools||'').split(',').filter(Boolean),T={};
+ if(have.includes('kharcha'))T.kharcha={tx:O('Kharcha_tx'),shop:O('Kharcha_shop'),wish:O('Kharcha_wish'),meta:O('Kharcha_meta')};
+ if(have.includes('medbox'))T.medbox={people:O('MedBox_people'),meds:O('MedBox_meds'),exp:O('MedBox_exp'),rx:undefined};
+ if(have.includes('trip')){const ev=O('Trip_events').map(e=>({id:String(e.id),name:String(e.name??'Untitled'),friends:[],expenses:[]})),by=id=>ev.find(e=>e.id===String(id)),cur={};
+  O('Trip_friends').forEach(f=>{const e=by(f.eventId);if(e)e.friends.push({id:String(f.id),name:String(f.name??'')})});
+  O('Trip_expenses').forEach(({eventId,...x})=>{const e=by(eventId);if(e)e.expenses.push(x)});
+  O('Trip_currencies').forEach(c=>{if(c.code&&+c.rate>0)cur[String(c.code)]=+c.rate});
+  T.trip={cur,events:ev,sel:ev[0]&&ev[0].id,tab:'exp',disp:KV('Trip_settings').disp||'NPR',last:{}}}
+ if(have.includes('bills'))T.bills={reminders:O('Bills_reminders'),expenses:O('Bills_expenses'),cur:KV('Bills_settings').cur||'Rs'};
+ const j=(v,d)=>{try{return JSON.parse(v)}catch(e){return d}};
+ if(have.includes('agr')){const A=O('Agr_agreements').map(a=>({...a,history:[]})),by=id=>A.find(x=>String(x.id)===String(id));O('Agr_renewals').forEach(h=>{const a=by(h.ID);if(a)(a.history=a.history||[]).push({on:h.On,prevStart:h.PrevStart,prevEnd:h.PrevEnd,prevValue:h.PrevValue,ref:h.Ref,by:h.By,remarks:h.Remarks})});const cal={};O('Agr_calendar').forEach(x=>{try{cal[String(x.year)]=JSON.parse(x.lengths)}catch(e){}});T.agr={agreements:A,cal}}
+ if(have.includes('ins')){const cal={};O('Ins_calendar').forEach(x=>{try{cal[String(x.year)]=JSON.parse(x.lengths)}catch(e){}});T.ins={policies:O('Ins_policies'),calendar:cal}}
+ if(have.includes('vehicle')){const services=O('Vehicle_services').map(s=>({...s,tasks:j(s.tasks,[])}));T.vehicle={vehicles:O('Vehicle_vehicles'),renewals:O('Vehicle_renewals'),services,checklist:O('Vehicle_checklist').map(x=>x.task||'').filter(Boolean)}}
+ if(have.includes('todo')){const meta=O('Todo_meta'),pick=k=>meta.find(x=>x.k===k);T.todo={tasks:O('Todo_tasks'),presets:j(pick('presets')&&pick('presets').value,{}),settings:j(pick('settings')&&pick('settings').value,{}),templates:j(pick('templates')&&pick('templates').value,[])}}
+ if(have.includes('calendar')){const items=O('Calendar_items').map(i=>({...i,date:j(i.date,null)})).filter(i=>Number.isInteger(i.date));const holidays={},lengths={};O('Calendar_holidays').forEach(h=>{const y=String(h.year);(holidays[y]=holidays[y]||[]).push({m:+h.month,d:+h.day,n:String(h.name||'')})});O('Calendar_lengths').forEach(x=>lengths[String(x.year)]=j(x.lengths,[]));T.calendar={items,holidays,lengths}}
+ if(have.includes('fd')){const profiles=O('FD_profiles').map(p=>({id:String(p.id),name:String(p.name||p.id),fds:[]})),by=id=>profiles.find(p=>p.id===id);
+  O('FD_records').forEach(r=>{const p=by(String(r.profile||'p1'));if(p)p.fds.push({...r,profile:undefined})});
+  if(!profiles.length)profiles.push({id:'p1',name:'Personal',fds:O('FD_records')});
+  const settings={};O('FD_settings').forEach(x=>settings[x.key]=j(x.value,null));T.fd={profiles,templates:O('FD_templates'),settings}}
+ if(have.includes('font'))T.font={fixes:Object.fromEntries(Object.entries(KV('Fonts_fixes')).map(([k,v])=>[k,String(v)])),rules:O('Fonts_rules').map(r=>({d:String(r.d),s:r.s==='src'?'src':'out',f:String(r.f??''),r:String(r.r??'')}))};
+ if(have.includes('prefs')){const p=KV('Prefs'),j=(v,d)=>{try{return JSON.parse(v)}catch(e){return d}};T.prefs={pins:j(p.pins,[]),recent:j(p.recent,[]),view:p.view==='list'?'list':'grid',theme:p.theme||null}}
+ return{app:'nepali-tools-all',v:BK_VER,at:ab.created,tools:T}}
+/* ---- apply (replace) one tool ---- */
+const fixId=o=>{const r={...o};if(Number.isInteger(+r.id)&&+r.id>0)r.id=+r.id;else delete r.id;return r};
+async function applyTool(k,d){
+ if(!d||typeof d!=='object')throw new Error('Nothing to restore');
+ if(k==='vehicle'){const V=d;const data={vehicles:Array.isArray(V.vehicles)?V.vehicles:[],renewals:Array.isArray(V.renewals)?V.renewals:[],services:Array.isArray(V.services)?V.services.map(s=>({...s,tasks:Array.isArray(s.tasks)?s.tasks:[]})):[],checklist:Array.isArray(V.checklist)?V.checklist:[]};
+  const db=await idbCreate('vehicle-tracker',dv=>dv.createObjectStore('kv'));try{await new Promise((res,rej)=>{const tr=db.transaction('kv','readwrite'),st=tr.objectStore('kv');tr.oncomplete=res;tr.onerror=()=>rej(tr.error);st.clear();st.put(data,'db')});}finally{db.close()}}
+ else if(k==='todo'){if(!Array.isArray(d.tasks))throw new Error('No tasks found');
+  const tasks=d.tasks.filter(t=>t&&String(t.title||'').trim()).map(t=>{const o={title:String(t.title).trim(),notes:String(t.notes||''),priority:['H','M','L'].includes(t.priority)?t.priority:'M',category:String(t.category||''),due:/^\d{4}-\d{2}-\d{2}$/.test(t.due||'')?t.due:'',done:!!t.done,repeat:typeof t.repeat==='string'?t.repeat:'none',alertDays:Number.isFinite(+t.alertDays)?+t.alertDays:null,subs:Array.isArray(t.subs)?t.subs:[],time:String(t.time||''),remind:+t.remind||0,tags:Array.isArray(t.tags)?t.tags:[],trashed:+t.trashed||0,created:+t.created||Date.now()};if(Number.isInteger(+t.id)&&+t.id>0)o.id=+t.id;return o});
+  const db=await idbCreate('todo-db',td=>{const s=td.createObjectStore('tasks',{keyPath:'id',autoIncrement:true});s.createIndex('due','due');td.createObjectStore('meta')});
+  try{await new Promise((res,rej)=>{const tr=db.transaction(['tasks','meta'],'readwrite'),ts=tr.objectStore('tasks'),ms=tr.objectStore('meta');tr.oncomplete=res;tr.onerror=()=>rej(tr.error);tr.onabort=()=>rej(tr.error||new Error('Write was cancelled'));ts.clear();for(const t of tasks)ts.put(t);ms.clear();ms.put(d.presets&&typeof d.presets==='object'?d.presets:{},'presets');ms.put(d.settings&&typeof d.settings==='object'?d.settings:{},'settings');ms.put(Array.isArray(d.templates)?d.templates:[],'templates')})}finally{db.close()}}
+ else if(k==='npcal'||k==='calendar'){const C=d,okD=v=>{if(!/^\d{8}$/.test(String(v)))return false;const y=+String(v).slice(0,4),m=+String(v).slice(4,6),d=+String(v).slice(6,8);return y>=2000&&y<=2090&&m>=1&&m<=12&&d>=1&&d<=32};
+  const items=(C.items||[]).filter(i=>i&&okD(i.date)&&['txn','task','note','shop'].includes(i.type)&&typeof i.text==='string'&&(i.type!=='txn'||((i.kind==='income'||i.kind==='expense')&&+i.amount>0))).map(i=>({date:+i.date,type:i.type,text:String(i.text||''),...(i.type==='txn'?{kind:i.kind==='income'?'income':'expense',amount:+i.amount}:{}),...(i.type==='task'?{time:String(i.time||''),done:!!i.done}:{}),...(i.type==='shop'?{done:!!i.done}:{})}));
+  const db=await idbCreate('npcal',nd=>{nd.createObjectStore('items',{keyPath:'id',autoIncrement:true}).createIndex('date','date');nd.createObjectStore('kv',{keyPath:'k'})});
+  try{const kv=[{k:'npc_hol',v:C.holidays||{}},{k:'npc_len',v:C.lengths||{}}];await idbReplace(db,{items,kv})}finally{db.close()}}
+ else if(k==='fd'){const clean=k=>{try{localStorage.removeItem(k)}catch(e){}},normFd=o=>{if(!o||typeof o!=='object')return null;const n={bank:String(o.bank||'Fixed deposit').trim()||'Fixed deposit',holder:String(o.holder||''),tag:String(o.tag||''),P:+o.P,r:+o.r,months:Math.round(+o.months),start:String(o.start||''),tds:Math.min(100,Math.max(0,+o.tds||5)),mode:o.mode==='compound'?'compound':'payout',basis:o.basis==='bs'?'bs':'simple',freq:['q','0','c','1','3','6','12'].includes(String(o.freq))?String(o.freq):'q',f:Math.max(0,Math.round(+o.f||0)),remind:o.remind!==false};if(o.closed)n.closed=true;if(o.renewed)n.renewed=true;if(o.src)n.src=String(o.src);if(Number.isInteger(+o.id)&&+o.id>0)n.id=+o.id;return n.P>0&&n.r>=0&&n.months>=1&&/^\d{4}-\d{2}-\d{2}$/.test(n.start)?n:null};
+  for(const k of FD_EXTRA)clean(k);clean(LSK.fd);
+  for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key&&key.startsWith(LSK.fd+':'))clean(key)}
+  const profiles=(Array.isArray(d.profiles)?d.profiles:[]).filter(p=>p&&p.id!=null).map(p=>({id:String(p.id),name:String(p.name||p.id),fds:(Array.isArray(p.fds)?p.fds:[]).map(normFd).filter(Boolean)}));
+  if(profiles.length){lsSet('fd-profs',profiles.map(p=>({id:p.id,name:p.name})));lsSet('fd-pid',profiles[0].id);profiles.forEach(p=>lsSet(p.id==='p1'?LSK.fd:LSK.fd+':'+p.id,p.fds))}
+  for(const [k,v] of Object.entries(d.settings||{}))if(FD_EXTRA.includes(k))try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}
+  lsSet('fd-tpl',d.templates||[])}
+ else if(k==='kharcha'){const TY=['expense','income','loan_given','loan_taken'],okD=v=>/^\d{4}-\d\d-\d\d$/.test(String(v||''));
+  const data={tx:(d.tx||[]).filter(x=>x&&TY.includes(x.type)&&okD(x.date)&&Number.isFinite(+x.amount)).map(x=>({...fixId(x),amount:+x.amount,date:String(x.date),cat:String(x.cat||'Other'),party:String(x.party||''),note:String(x.note||''),settled:!!x.settled})),
+   shop:(d.shop||[]).filter(x=>x&&x.name).map(fixId),wish:(d.wish||[]).filter(x=>x&&x.name).map(fixId),meta:(d.meta||[]).filter(m=>m&&typeof m.k==='string')};
+  const db=await idbCreate('kharcha',KH_SCHEMA);try{await idbReplace(db,data)}finally{db.close()}}
+ else if(k==='medbox'){const data={people:(d.people||[]).filter(x=>x&&x.name).map(fixId),meds:(d.meds||[]).filter(x=>x&&x.name).map(fixId),exp:(d.exp||[]).filter(x=>x&&Number.isFinite(+x.amount)).map(fixId)};
+  if(Array.isArray(d.rx))data.rx=d.rx.filter(x=>x&&x.data).map(({data:u,...o})=>({...fixId(o),blob:url2blob(u)}));
+  const db=await idbCreate('medbox',MB_SCHEMA);try{await idbReplace(db,data)}finally{db.close()}}
+ else if(k==='trip'){if(!Array.isArray(d.events)||!d.events.length||!d.cur)throw new Error('No events found');lsSet(LSK.trip,d)}
+ else if(k==='bills'){if(!Array.isArray(d.reminders)||!Array.isArray(d.expenses))throw new Error('No reminders or expenses table found');lsSet(LSK.bills,d)}
+ else if(k==='agr'){const okD=v=>{const t=String(v||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(t))return false;const d=new Date(t+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===t},okCal=c=>c&&typeof c==='object'&&!Array.isArray(c)&&!!c[2080]&&Object.entries(c).every(([y,v])=>Number.isInteger(+y)&&+y>=2080&&Array.isArray(v)&&v.length===12&&v.every(n=>n>=28&&n<=32)),norm=a=>{if(!a||typeof a!=='object')return null;const o={id:String(a.id||('a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),title:String(a.title||'').trim(),party:String(a.party||''),type:String(a.type||'Other'),start:okD(a.start)?a.start:'',end:okD(a.end)?a.end:'',value:['string','number'].includes(typeof a.value)?a.value:'',contact:String(a.contact||''),notes:String(a.notes||''),status:a.status==='expired'?'expired':'active',expiredOn:okD(a.expiredOn)?a.expiredOn:'',history:(Array.isArray(a.history)?a.history:[]).map(h=>({on:okD(h&&h.on)?h.on:'',prevStart:okD(h&&h.prevStart)?h.prevStart:'',prevEnd:okD(h&&h.prevEnd)?h.prevEnd:'',prevValue:h&&h.prevValue!=null?h.prevValue:'',ref:String(h&&h.ref||''),by:String(h&&h.by||''),remarks:String(h&&h.remarks||'')}))};return o.title&&o.end?o:null};
+  const agreements=(Array.isArray(d.agreements)?d.agreements:[]).map(norm).filter(Boolean),cur=lsGet(LSK.agr),cal=okCal(d.cal)?d.cal:(cur&&okCal(cur.cal)?cur.cal:null),out={agreements};if(cal)out.cal=cal;lsSet(LSK.agr,out)}
+ else if(k==='ins'){const okD=v=>{const t=String(v||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(t))return false;const d=new Date(t+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===t},okCal=c=>{if(!c||typeof c!=='object'||Array.isArray(c))return false;const ks=Object.keys(c).map(Number).sort((a,b)=>a-b);return ks[0]===2080&&ks.every((y,i)=>Number.isInteger(y)&&y>=2080&&Array.isArray(c[y])&&c[y].length===12&&c[y].every(n=>n>=28&&n<=32))&&ks.every((y,i)=>i===0||y===ks[i-1]+1)},norm=p=>{if(!p||typeof p!=='object')return null;const o={id:String(p.id||('p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),holder:String(p.holder||'').trim(),pno:String(p.pno||''),company:String(p.company||''),type:String(p.type||'Other'),premium:['string','number'].includes(typeof p.premium)?p.premium:'',phone:String(p.phone||''),notes:String(p.notes||''),expiry:okD(p.expiry)?p.expiry:'',status:p.status==='expired'?'expired':'active',renewed:!!p.renewed};return o.holder&&o.pno&&o.expiry?o:null};
+  const policies=(Array.isArray(d.policies)?d.policies:[]).map(norm).filter(Boolean),cur=lsGet('pr_cal'),cal=okCal(d.calendar)?d.calendar:(okCal(cur)?cur:null);lsSet(LSK.ins,policies);if(cal)lsSet('pr_cal',cal)}
+ else if(k==='font'){lsSet('npfix',d.fixes||{});lsSet('nprules',d.rules||[])}
+ else if(k==='prefs'){lsSet('np-pins',d.pins||[]);lsSet('np-recent',d.recent||[]);lsSet('np-view',d.view==='list'?'list':'grid');if(d.theme==='light'||d.theme==='dark')localStorage.setItem('np-theme',d.theme);else localStorage.removeItem('np-theme')}
+ else throw new Error('Unknown item')}
+/* ---- dialog ---- */
+const bkMsg=(t,err)=>{const m=$('bkm');m.textContent=t;m.className=err?'err':''};
+const stamp=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+async function saveFile(name,blob){try{const d=window.claude&&window.claude.use?await window.claude.use('downloads'):null;if(d){await d.save({filename:name,data:blob});return true}}catch(e){if(e&&e.code==='declined')return false}
+ const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return true}
+function markBk(snap){try{const n=String(Date.now());for(const k of ['kharcha','medbox','trip','bills','vehicle','todo','calendar','fd'])if(snap.tools[k])localStorage.setItem('np-bk-'+k,n);localStorage.setItem('np-bk-all',n)}catch(e){}}
+async function refreshBk(){const ul=$('bkl');ul.textContent='';let snap;
+ try{snap=await makeSnapshot(false)}catch(e){bkMsg('Could not read your data: '+(e.message||e),true);return}
+ const t=+localStorage.getItem('np-bk-all')||0,age=t?Math.floor((Date.now()-t)/864e5):null;
+ const head=document.createElement('li');head.textContent=age===null?'No full backup made yet.':'Last full backup: '+(age===0?'today':age+' day(s) ago')+'.';ul.append(head);
+ for(const k of Object.keys(snap.tools)){if(k==='prefs')continue;const li=document.createElement('li');li.textContent=TOOL_NAME[k];const s=document.createElement('small');s.textContent=DESC[k](snap.tools[k]);li.append(s);ul.append(li)}
+ if(ul.children.length===1){const li=document.createElement('li');li.textContent='No saved data found in this browser yet.';ul.append(li)}}
+let pend=null;
+function showPending(){const box=$('bkr');box.textContent='';const T=pend.snap.tools,h=document.createElement('p');h.className='bkn';h.textContent='Found in '+pend.name+'. Tick what to restore. Each ticked item REPLACES the current data of that tool.';box.append(h);
+ for(const k of Object.keys(T)){if(!TOOL_NAME[k])continue;const l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.checked=true;c.dataset.k=k;l.append(c,' '+TOOL_NAME[k]+': '+DESC[k](T[k]));box.append(l)}
+ const sl=document.createElement('label'),sc=document.createElement('input');sc.type='checkbox';sc.checked=true;sc.id='bksafe';sl.append(sc,' Save a safety copy of the current data first');box.append(sl);
+ const b=document.createElement('button');b.className='bkd2';b.textContent='Replace selected data';b.onclick=doRestore;box.append(b)}
+async function doRestore(){const sel=[...$('bkr').querySelectorAll('input[data-k]:checked')].map(i=>i.dataset.k);if(!sel.length)return bkMsg('Tick at least one item.',true);
+ const btn=$('bkr').querySelector('button');btn.disabled=true;
+ try{if($('bksafe').checked){const ok=await saveFile('nepali-tools-before-restore-'+stamp()+'.json',new Blob([JSON.stringify(await makeSnapshot())],{type:'application/json'}));if(!ok){bkMsg('Cancelled. The safety copy was not saved, so nothing was changed.',true);btn.disabled=false;return}}
+  const res=[];for(const k of sel){try{await applyTool(k,pend.snap.tools[k]);res.push('✓ '+TOOL_NAME[k])}catch(e){res.push('✗ '+TOOL_NAME[k]+': '+(e.message||e))}}
+  if(sel.includes('prefs')){pins=arr('np-pins');recent=arr('np-recent');view=store.get('np-view','grid')==='list'?'list':'grid';theme=(()=>{try{const t=localStorage.getItem('np-theme');return t==='light'||t==='dark'?t:'auto'}catch(e){return 'auto'}})();applyTheme();applyView();draw()}
+  bkMsg('Restore finished:\n'+res.join('\n'),res.some(r=>r[0]==='✗'));pend=null;$('bkr').textContent='';refreshBk()}
+ catch(e){bkMsg('Restore failed: '+(e.message||e),true);btn.disabled=false}}
+$('bkopen').onclick=()=>{bkMsg('');$('bkr').textContent='';pend=null;$('bkd').showModal();refreshBk()};
+$('bkx').onclick=()=>$('bkd').close();
+$('bkj').onclick=async()=>{bkMsg('Preparing…');try{const snap=await makeSnapshot();if(await saveFile('nepali-tools-backup-'+stamp()+'.json',new Blob([JSON.stringify(snap)],{type:'application/json'}))){markBk(snap);bkMsg('JSON backup saved.');refreshBk()}else bkMsg('Cancelled.')}catch(e){bkMsg('Backup failed: '+(e.message||e),true)}};
+$('bkxl').onclick=async()=>{bkMsg('Preparing…');try{await loadXLSX();const snap=await makeSnapshot(),out=XLSX.write(toWorkbook(snap),{bookType:'xlsx',type:'array'});if(await saveFile('nepali-tools-backup-'+stamp()+'.xlsx',new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))){markBk(snap);bkMsg('Excel backup saved. It does not include prescription files; use JSON for those.');refreshBk()}else bkMsg('Cancelled.')}catch(e){bkMsg('Backup failed: '+(e.message||e),true)}};
+$('bkf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;bkMsg('Reading…');
+ try{let snap;if(/\.json$/i.test(f.name)){snap=JSON.parse(await f.text());if(!snap||snap.app!=='nepali-tools-all'||!snap.tools)throw new Error('This JSON file was not made by "Back up everything". Use each tool\'s own Restore for single-tool backups.')}
+  else if(/\.xlsx$/i.test(f.name)){await loadXLSX();snap=fromWorkbook(XLSX.read(await f.arrayBuffer(),{type:'array'}))}
+  else throw new Error('Choose a .json or .xlsx file.');
+  if(!Object.keys(snap.tools).some(k=>TOOL_NAME[k]))throw new Error('The file has nothing to restore.');
+  pend={snap,name:f.name};showPending();bkMsg('')}
+ catch(err){pend=null;$('bkr').textContent='';bkMsg(err.message||'Could not read that file.',true)}};
+
 applyTheme();applyView();draw();
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>

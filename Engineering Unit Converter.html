@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Engineering Unit Converter</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--tx:#13234B;--mu:#5b6785;--ac:#13234B;--ac2:#e8a317;--bd:#d9dfec;--hi:#eef2fb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1426;--card:#16203a;--tx:#e8ecf7;--mu:#9aa6c4;--ac:#6f93ff;--ac2:#f0b73c;--bd:#2a3858;--hi:#1d2a4a}}
+:root[data-theme="dark"]{--bg:#0d1426;--card:#16203a;--tx:#e8ecf7;--mu:#9aa6c4;--ac:#6f93ff;--ac2:#f0b73c;--bd:#2a3858;--hi:#1d2a4a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:#13234B;color:#fff;padding:20px 16px}
+header h1{margin:0;font-size:1.4rem}header p{margin:4px 0 0;color:#c4cde6;font-size:.9rem}
+main{max-width:760px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.tabs button{flex:none;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:6px 14px;font-size:.9rem;cursor:pointer}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+:root[data-theme="dark"] .tabs button.on{color:#0d1426}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tabs button.on{color:#0d1426}}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw{display:flex;justify-content:center;margin:10px 0}
+label{display:block;font-size:.8rem;color:var(--mu);margin-bottom:3px}
+input,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-size:1rem}
+input:focus,select:focus{outline:2px solid var(--ac2)}
+.btn{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.9rem}
+.btn:hover{background:var(--hi)}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+td{padding:8px 6px;border-bottom:1px solid var(--bd)}td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+tr.hl td{background:var(--hi)}
+.cap{color:var(--mu);font-size:.85rem;font-style:italic}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2{font-size:1.05rem;margin:0 0 8px}p.n{color:var(--mu);font-size:.9rem;margin:6px 0}
+footer{text-align:center;color:var(--mu);font-size:.8rem;padding:8px 16px 24px}
+.bk{display:inline-block;margin:0 0 10px;color:var(--ac);text-decoration:none;font-weight:600}.bk:hover{text-decoration:underline}
+@media(max-width:560px){.row{grid-template-columns:1fr}header{padding:16px 14px}main{padding:12px}}
+</style></head><body>
+<a class="bk" href="index.html">← All tools</a>
+<header><h1>Engineering Unit Converter</h1><p>Length, area, volume, mass, pressure, energy, power, speed and temperature. Enter once, read every unit.</p></header>
+<main>
+<div class="card" id="tool">
+<div class="tabs" id="tabs"></div>
+<div class="row"><div><label for="fv">From value</label><input id="fv" type="text" inputmode="decimal" value="1"></div>
+<div><label for="fu">From unit</label><select id="fu"></select></div></div>
+<div class="sw"><button class="btn" id="swap">⇅ Swap</button></div>
+<div class="row"><div><label for="tv">To value</label><input id="tv" type="text" inputmode="decimal"></div>
+<div><label for="tu">To unit</label><select id="tu"></select></div></div>
+</div>
+<div class="card">
+<div class="top"><span class="cap" id="cap"></span><button class="btn" id="copy">Copy all</button></div>
+<table id="tbl"></table>
+</div>
+<div class="card">
+<h2>Every factor here is a definition</h2>
+<p class="n">The international foot is exactly 0.3048 m, the pound exactly 0.45359237 kg, the calorie exactly 4.184 J. Derived units are stored as the product that defines them: a psi is (0.45359237 × 9.80665) ÷ 0.0254², not a rounded 6894.76, so chained conversions do not drift.</p>
+<p class="n"><b>Temperature is not a ratio.</b> It is converted through kelvin, because scales have offsets as well as different sizes.</p>
+<p class="n"><b>Horsepower is two units.</b> Mechanical hp is 550 ft·lbf/s (≈745.7 W); metric hp (PS) is 735.49875 W.</p>
+<p class="n"><b>Tola</b> = 11.6638038 g, used for gold pricing in Nepal.</p>
+</div>
+</main>
+<footer>Runs entirely in your browser. Nothing you type is uploaded or stored.</footer>
+<script>
+const lb=0.45359237,g=9.80665,ft=0.3048,inch=0.0254,btu=1055.05585262;
+const D={
+"Length":{b:"m",d:"m",t:"ft",u:[["Millimetre","mm",1e-3],["Centimetre","cm",1e-2],["Metre","m",1],["Kilometre","km",1e3],["Inch","in",inch],["Foot","ft",ft],["Yard","yd",.9144],["Mile","mi",1609.344]]},
+"Area":{d:"m²",t:"ft²",u:[["Square millimetre","mm²",1e-6],["Square centimetre","cm²",1e-4],["Square metre","m²",1],["Hectare","ha",1e4],["Square kilometre","km²",1e6],["Square inch","in²",inch**2],["Square foot","ft²",ft**2],["Square yard","yd²",.9144**2],["Acre","ac",4046.8564224],["Square mile","mi²",1609.344**2],["Ropani","ropani",5476*ft**2],["Aana","aana",5476*ft**2/16],["Paisa","paisa",5476*ft**2/64],["Daam","daam",5476*ft**2/256],["Bigha","bigha",72900*ft**2],["Kattha","kattha",3645*ft**2],["Dhur","dhur",182.25*ft**2]]},
+"Volume":{d:"m³",t:"L",u:[["Millilitre","mL",1e-6],["Litre","L",1e-3],["Cubic metre","m³",1],["Cubic inch","in³",inch**3],["Cubic foot","ft³",ft**3],["Cubic yard","yd³",.9144**3],["US gallon","US gal",231*inch**3],["Imperial gallon","imp gal",4.54609e-3]]},
+"Mass":{d:"kg",t:"lb",u:[["Gram","g",1e-3],["Kilogram","kg",1],["Tonne","t",1e3],["Ounce","oz",lb/16],["Pound","lb",lb],["Short ton (US)","sh tn",2000*lb],["Tola","tola",0.0116638038]]},
+"Pressure and stress":{d:"MPa",t:"psi",u:[["Pascal","Pa",1],["Kilopascal","kPa",1e3],["Megapascal","MPa",1e6],["Bar","bar",1e5],["Atmosphere","atm",101325],["kgf per cm²","kgf/cm²",g*1e4],["Pound-force per in²","psi",lb*g/inch**2],["Kip per in²","ksi",1000*lb*g/inch**2],["mm of mercury","mmHg",133.322387415]]},
+"Energy":{d:"kJ",t:"kcal",u:[["Joule","J",1],["Kilojoule","kJ",1e3],["Megajoule","MJ",1e6],["Kilowatt-hour","kWh",3.6e6],["Calorie","cal",4.184],["Kilocalorie","kcal",4184],["BTU (IT)","BTU",btu],["Foot-pound-force","ft·lbf",ft*lb*g]]},
+"Power":{d:"kW",t:"hp",u:[["Watt","W",1],["Kilowatt","kW",1e3],["Megawatt","MW",1e6],["Horsepower (mechanical)","hp",550*ft*lb*g],["Horsepower (metric, PS)","PS",735.49875],["BTU per hour","BTU/h",btu/3600],["Ton of refrigeration","TR",12000*btu/3600]]},
+"Speed":{d:"km/h",t:"mph",u:[["Metre per second","m/s",1],["Kilometre per hour","km/h",1/3.6],["Mile per hour","mph",0.44704],["Knot","kn",1852/3600],["Foot per second","ft/s",ft]]},
+"Force":{d:"kN",t:"kip",u:[["Newton","N",1],["Kilonewton","kN",1e3],["Meganewton","MN",1e6],["Kilogram-force","kgf",g],["Tonne-force","tf",1000*g],["Pound-force","lbf",lb*g],["Kip","kip",1000*lb*g]]},
+"Torque":{d:"N·m",t:"lbf·ft",u:[["Newton-metre","N·m",1],["Kilonewton-metre","kN·m",1e3],["Kilogram-force metre","kgf·m",g],["Pound-force foot","lbf·ft",ft*lb*g],["Pound-force inch","lbf·in",inch*lb*g]]},
+"Flow rate":{d:"m³/s",t:"L/s",u:[["Cubic metre per second","m³/s",1],["Cubic metre per hour","m³/h",1/3600],["Litre per second","L/s",1e-3],["Litre per minute","L/min",1e-3/60],["Million litres per day","MLD",1000/86400],["Cubic foot per second (cusec)","ft³/s",ft**3],["US gallon per minute","gpm",231*inch**3/60]]},
+"Temperature":{d:"°C",t:"°F",u:[["Celsius","°C"],["Fahrenheit","°F"],["Kelvin","K"],["Rankine","°R"]]}
+};
+const T={"°C":[k=>k-273.15,c=>c+273.15],"°F":[k=>k*9/5-459.67,f=>(f+459.67)*5/9],"K":[k=>k,k=>k],"°R":[k=>k*9/5,r=>r*5/9]};
+let cat="Length";const $=id=>document.getElementById(id);
+const sym=u=>D[cat].u.find(x=>x[1]===u);
+function toBase(v,s){return cat==="Temperature"?T[s][1](v):v*sym(s)[2]}
+function fromBase(v,s){return cat==="Temperature"?T[s][0](v):v/sym(s)[2]}
+function fmt(x){if(!isFinite(x))return"—";if(x===0)return"0";const a=Math.abs(x);
+if(a>=1e12||a<1e-6)return x.toExponential(5).replace(/\.?0+e/,"e");
+let s=parseFloat(x.toPrecision(8));return s.toLocaleString("en-US",{maximumFractionDigits:10})}
+function num(s){return parseFloat(String(s).replace(/,/g,""))}
+function opts(sel,val){sel.innerHTML=D[cat].u.map(u=>`<option value="${u[1]}">${u[0]} (${u[1]})</option>`).join("");sel.value=val}
+function setCat(c){cat=c;const d=D[c];
+document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.textContent===c));
+opts($("fu"),d.d);opts($("tu"),d.t);$("fv").value="1";fwd()}
+function fwd(){const v=num($("fv").value);const b=toBase(v,$("fu").value);
+$("tv").value=isNaN(v)?"":fmt(fromBase(b,$("tu").value));table()}
+function back(){const v=num($("tv").value);const b=toBase(v,$("tu").value);
+$("fv").value=isNaN(v)?"":fmt(fromBase(b,$("fu").value));table()}
+function table(){const v=num($("fv").value),fu=$("fu").value,tu=$("tu").value;
+const b=toBase(v,fu);
+$("cap").textContent=`${cat}, from ${$("fv").value||0} ${sym(fu)[0]}`;
+$("tbl").innerHTML=D[cat].u.map(u=>`<tr class="${u[1]===tu?"hl":""}"><td>${u[0]}</td><td>${isNaN(v)?"—":fmt(fromBase(b,u[1]))} <span class="cap">${u[1]}</span></td></tr>`).join("")}
+$("tabs").innerHTML=Object.keys(D).map(c=>`<button>${c}</button>`).join("");
+$("tabs").onclick=e=>{if(e.target.tagName==="BUTTON")setCat(e.target.textContent)};
+$("fv").oninput=fwd;$("tv").oninput=back;$("fu").onchange=fwd;$("tu").onchange=fwd;
+$("swap").onclick=()=>{const a=$("fu").value,b=$("tu").value;$("fu").value=b;$("tu").value=a;fwd()};
+$("copy").onclick=async()=>{const v=num($("fv").value),b=toBase(v,$("fu").value);
+const t=`${cat}: ${$("fv").value} ${$("fu").value}\n`+D[cat].u.map(u=>`${u[0]}: ${fmt(fromBase(b,u[1]))} ${u[1]}`).join("\n");
+try{await navigator.clipboard.writeText(t);$("copy").textContent="Copied ✓"}catch(e){$("copy").textContent="Copy failed"}
+setTimeout(()=>$("copy").textContent="Copy all",1500)};
+setCat("Length");
+</script></body></html>
